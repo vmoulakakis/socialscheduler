@@ -1,0 +1,21 @@
+{
+  "organization_id": "68a86463018d512de98d6315",
+  "organization_name": "My Organization",
+  "timezone": "Europe/Athens",
+  "queue_limit": 10,
+  "idea_limit": 100,
+  "future_horizon_days": 120,
+  "dedupe_sent_days": 180,
+  "max_creates_per_run": 10,
+  "late_item_policy": "defer",
+  "late_item_defer_days": 3,
+  "asset_repo": "vmoulakakis/socialscheduler",
+  "asset_ref": "main",
+  "protected_rules": {
+    "never_share_now": true,
+    "never_share_next": true,
+    "never_move_future_due_at_earlier": true,
+    "never_duplicate_sent_or_scheduled": true,
+    "queue_correctness_over_fullness": true
+  }
+}
