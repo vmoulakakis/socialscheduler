@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 
-from .buffer_client import BufferClient, BufferAPIError
+from .buffer_client import BufferAPIError, BufferClient, BufferRateLimitError
 from .scheduler import load_json
 from .scheduler_v2 import SocialScheduler
 
@@ -39,10 +39,18 @@ def main() -> int:
     )
     try:
         result = scheduler.run()
+    except BufferRateLimitError as exc:
+        print(json.dumps({
+            "ok": True,
+            "status": "rate_limited",
+            "retry_after_seconds": exc.retry_after_seconds,
+            "action": "defer_without_writes",
+        }, ensure_ascii=False, indent=2))
+        return 0
     except BufferAPIError as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+        print(json.dumps({"ok": False, "status": "error", "error": str(exc)}, ensure_ascii=False, indent=2))
         return 2
-    print(json.dumps({"ok": True, **result}, ensure_ascii=False, indent=2))
+    print(json.dumps({"ok": True, "status": "completed", **result}, ensure_ascii=False, indent=2))
     return 0
 
 
