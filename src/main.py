@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 
 from .buffer_client import BufferClient, BufferAPIError
-from .scheduler import SocialScheduler, load_json
+from .scheduler import load_json
+from .scheduler_v2 import SocialScheduler
 
 ROOT = Path(__file__).resolve().parents[1]
 
