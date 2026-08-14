@@ -26,8 +26,9 @@ class BufferRateLimitError(BufferAPIError):
 class BufferClient:
     api_key: str
     endpoint: str = BUFFER_ENDPOINT
-    max_retries: int = 4
-    max_retry_after_seconds: int = 30
+    max_retries: int = 1
+    max_retry_after_seconds: int = 15
+    request_timeout_seconds: int = 12
 
     @classmethod
     def from_env(cls) -> "BufferClient":
@@ -50,7 +51,7 @@ class BufferClient:
                 method="POST",
             )
             try:
-                with urllib.request.urlopen(req, timeout=30) as response:
+                with urllib.request.urlopen(req, timeout=self.request_timeout_seconds) as response:
                     body = json.loads(response.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
                 if exc.code == 429:
@@ -59,17 +60,19 @@ class BufferClient:
                     if retry_after_seconds and retry_after_seconds > self.max_retry_after_seconds:
                         raise BufferRateLimitError(retry_after_seconds) from exc
                     if attempt < self.max_retries:
-                        delay = retry_after_seconds if retry_after_seconds is not None else min(30, 2 ** attempt * 5)
+                        delay = retry_after_seconds if retry_after_seconds is not None else 5
                         time.sleep(max(1, min(self.max_retry_after_seconds, delay)))
                         continue
                     raise BufferRateLimitError(retry_after_seconds) from exc
                 detail = exc.read().decode("utf-8", errors="replace")
                 raise BufferAPIError(f"Buffer HTTP {exc.code}: {detail[:500]}") from exc
-            except urllib.error.URLError as exc:
+            except (urllib.error.URLError, TimeoutError) as exc:
                 if attempt < self.max_retries:
-                    time.sleep(min(30, 2 ** attempt * 2))
+                    time.sleep(3)
                     continue
-                raise BufferAPIError(f"Buffer network error: {exc}") from exc
+                raise BufferAPIError(
+                    f"Buffer network/timeout error after {self.max_retries + 1} attempts: {exc}"
+                ) from exc
 
             if body.get("errors"):
                 raise BufferAPIError(f"Buffer GraphQL error: {body['errors']}")
