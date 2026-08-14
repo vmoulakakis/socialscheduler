@@ -40,10 +40,19 @@ jobs:
           fi
           echo "BUFFER_API_KEY secret is present"
       - name: Read-only Buffer smoke check
+        id: buffer-preflight
         run: python -m scripts.buffer_smoke
+      - name: Rate-limit safe defer
+        if: steps.buffer-preflight.outputs.status == 'rate_limited'
+        shell: bash
+        run: |
+          echo "Buffer API is throttled; smoke check classified this as a safe defer."
+          echo "Retry after: ${{ steps.buffer-preflight.outputs.retry_at_utc }}"
       - name: Recover media from existing Buffer Ideas
+        if: steps.buffer-preflight.outputs.available == 'true'
         run: python -m scripts.sync_idea_assets
       - name: Persist recovered media
+        if: steps.buffer-preflight.outputs.available == 'true'
         shell: bash
         run: |
           git add assets
@@ -56,4 +65,5 @@ jobs:
             echo "No new assets to persist"
           fi
       - name: Scheduler dry-run
+        if: steps.buffer-preflight.outputs.available == 'true'
         run: python -m src.main --mode dry-run
