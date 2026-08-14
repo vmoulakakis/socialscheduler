@@ -21,6 +21,11 @@ on:
         options:
           - socialmarket_outbox
           - legacy_backlog
+  push:
+    branches:
+      - feat/socialmarket-outbox-executor
+    paths:
+      - .github/workflows/social-scheduler.yml
 
 concurrency:
   group: social-scheduler-buffer
