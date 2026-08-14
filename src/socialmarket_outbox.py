@@ -147,22 +147,38 @@ class SocialMarketOutboxClient:
         return self._post({"action": "import_legacy", "campaigns": campaigns})
 
     def sync_scheduler_actions(self, actions: list[dict[str, Any]]) -> dict[str, int]:
-        counts = {"scheduled": 0, "failed": 0}
+        counts = {"scheduled": 0, "published": 0, "failed": 0}
         for action in actions:
             job_id = str(action.get("campaign") or "").strip()
             if not job_id:
                 continue
-            if action.get("type") == "scheduled":
+            action_type = action.get("type")
+            platform_meta = {"platform": action.get("service")}
+
+            if action_type in {"scheduled", "already_scheduled"}:
                 self.ack(
                     job_id,
                     "scheduled",
                     external_post_id=action.get("postId"),
                     scheduled_at=action.get("dueAt"),
-                    metadata={"platform": action.get("service")},
+                    metadata=platform_meta | {"reconciled_existing": action_type == "already_scheduled"},
                 )
                 counts["scheduled"] += 1
-            elif action.get("type") == "blocked" and action.get("reason") in {"media_unavailable", "fresh_verification_required"}:
-                self.ack(job_id, "failed", error=action.get("reason"), metadata={"platform": action.get("service")})
+            elif action_type == "already_published":
+                self.ack(
+                    job_id,
+                    "published",
+                    external_post_id=action.get("postId"),
+                    published_at=action.get("sentAt"),
+                    metadata=platform_meta | {"reconciled_existing": True},
+                )
+                counts["published"] += 1
+            elif action_type in {"already_error", "skip_late"}:
+                reason = action.get("reason") or ("scheduled_time_elapsed" if action_type == "skip_late" else "buffer_status_error")
+                self.ack(job_id, "failed", external_post_id=action.get("postId"), error=reason, metadata=platform_meta)
+                counts["failed"] += 1
+            elif action_type == "blocked" and action.get("reason") in {"media_unavailable", "fresh_verification_required"}:
+                self.ack(job_id, "failed", error=action.get("reason"), metadata=platform_meta)
                 counts["failed"] += 1
         return counts
 
