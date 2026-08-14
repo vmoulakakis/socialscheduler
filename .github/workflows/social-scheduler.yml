@@ -24,7 +24,7 @@ permissions:
 jobs:
   schedule-buffer:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
@@ -47,9 +47,20 @@ jobs:
             echo "BUFFER_API_KEY GitHub Actions secret is missing."
             exit 1
           fi
+      - name: Buffer preflight and reconciliation snapshot
+        id: buffer-preflight
+        run: python -m scripts.buffer_smoke
+      - name: Rate-limit safe defer
+        if: steps.buffer-preflight.outputs.status == 'rate_limited'
+        shell: bash
+        run: |
+          echo "Buffer is rate limited. No Buffer writes will be attempted in this run."
+          echo "Retry after: ${{ steps.buffer-preflight.outputs.retry_at_utc }}"
       - name: Recover original media from existing Buffer Ideas
+        if: steps.buffer-preflight.outputs.available == 'true'
         run: python -m scripts.sync_idea_assets
       - name: Persist recovered media in repository
+        if: steps.buffer-preflight.outputs.available == 'true'
         shell: bash
         run: |
           git add assets
@@ -60,4 +71,5 @@ jobs:
             git push origin HEAD:main
           fi
       - name: Run scheduler
+        if: steps.buffer-preflight.outputs.available == 'true'
         run: python -m src.main --mode "$SCHEDULER_MODE"
