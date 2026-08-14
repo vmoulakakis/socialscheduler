@@ -2,10 +2,19 @@ name: Migrate Legacy Backlog to SocialMarket V2
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feat/socialmarket-outbox-executor
+    paths:
+      - .github/workflows/migrate-legacy-backlog.yml
 
 permissions:
   contents: read
   id-token: write
+
+concurrency:
+  group: socialmarket-v2-legacy-import
+  cancel-in-progress: false
 
 jobs:
   migrate:
