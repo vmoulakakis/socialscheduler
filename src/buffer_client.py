@@ -20,6 +20,7 @@ class BufferClient:
     api_key: str
     endpoint: str = BUFFER_ENDPOINT
     max_retries: int = 4
+    max_retry_after_seconds: int = 30
 
     @classmethod
     def from_env(cls) -> "BufferClient":
@@ -45,11 +46,17 @@ class BufferClient:
                 with urllib.request.urlopen(req, timeout=30) as response:
                     body = json.loads(response.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
-                if exc.code == 429 and attempt < self.max_retries:
+                if exc.code == 429:
                     retry_after = exc.headers.get("Retry-After")
-                    delay = int(retry_after) if retry_after and retry_after.isdigit() else min(60, 2 ** attempt * 5)
-                    time.sleep(delay)
-                    continue
+                    retry_after_seconds = int(retry_after) if retry_after and retry_after.isdigit() else None
+                    if retry_after_seconds and retry_after_seconds > self.max_retry_after_seconds:
+                        raise BufferAPIError(
+                            f"Buffer HTTP 429 rate limited; Retry-After={retry_after_seconds}s exceeds safe runner wait"
+                        ) from exc
+                    if attempt < self.max_retries:
+                        delay = retry_after_seconds if retry_after_seconds is not None else min(30, 2 ** attempt * 5)
+                        time.sleep(max(1, min(self.max_retry_after_seconds, delay)))
+                        continue
                 detail = exc.read().decode("utf-8", errors="replace")
                 raise BufferAPIError(f"Buffer HTTP {exc.code}: {detail[:500]}") from exc
             except urllib.error.URLError as exc:
