@@ -48,7 +48,7 @@ jobs:
             exit 1
           fi
       - name: Recover original media from existing Buffer Ideas
-        run: python scripts/sync_idea_assets.py
+        run: python -m scripts.sync_idea_assets
       - name: Persist recovered media in repository
         shell: bash
         run: |
