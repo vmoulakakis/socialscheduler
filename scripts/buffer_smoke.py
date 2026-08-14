@@ -3,12 +3,21 @@ from __future__ import annotations
 import json
 import os
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 
-from src.buffer_client import BufferClient, BufferAPIError
+from src.buffer_client import BufferAPIError, BufferClient, BufferRateLimitError
 
 ORG_ID = os.getenv("BUFFER_ORGANIZATION_ID", "68a86463018d512de98d6315").strip()
 STATUSES = ["draft", "needs_approval", "scheduled", "sending", "sent", "error"]
 TRAVEL_AI_IDEA = "6a7f0383153244db8c91ef2a"
+
+
+def set_output(name: str, value: str) -> None:
+    path = os.getenv("GITHUB_OUTPUT", "").strip()
+    if not path:
+        return
+    with open(path, "a", encoding="utf-8") as handle:
+        handle.write(f"{name}={value}\n")
 
 
 def main() -> int:
@@ -29,6 +38,7 @@ def main() -> int:
 
     summary = {
         "ok": True,
+        "status": "available",
         "organization": {"id": ORG_ID, "name": orgs[ORG_ID]},
         "channel_count": len(channels),
         "channels": [
@@ -56,6 +66,8 @@ def main() -> int:
             for p in posts if p.get("status") == "error"
         ],
     }
+    set_output("available", "true")
+    set_output("status", "available")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0
 
@@ -63,6 +75,24 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
+    except BufferRateLimitError as exc:
+        retry_at = None
+        if exc.retry_after_seconds is not None:
+            retry_at = datetime.now(timezone.utc) + timedelta(seconds=exc.retry_after_seconds)
+        set_output("available", "false")
+        set_output("status", "rate_limited")
+        if retry_at is not None:
+            set_output("retry_at_utc", retry_at.isoformat(timespec="seconds"))
+        print(json.dumps({
+            "ok": True,
+            "status": "rate_limited",
+            "retry_after_seconds": exc.retry_after_seconds,
+            "retry_at_utc": retry_at.isoformat(timespec="seconds") if retry_at else None,
+            "action": "defer_without_writes",
+        }, ensure_ascii=False, indent=2))
+        raise SystemExit(0)
     except BufferAPIError as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+        set_output("available", "false")
+        set_output("status", "error")
+        print(json.dumps({"ok": False, "status": "error", "error": str(exc)}, ensure_ascii=False, indent=2))
         raise SystemExit(2)
