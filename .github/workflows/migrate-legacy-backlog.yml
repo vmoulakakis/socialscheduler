@@ -1,0 +1,34 @@
+name: Migrate Legacy Backlog to SocialMarket V2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/socialmarket-outbox-executor
+    paths:
+      - .github/workflows/migrate-legacy-backlog.yml
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: socialmarket-v2-legacy-import
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Import backlog idempotently
+        run: python -m scripts.migrate_socialmarket_backlog

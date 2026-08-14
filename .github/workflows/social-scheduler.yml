@@ -8,18 +8,32 @@ on:
       mode:
         description: "Scheduler mode"
         required: true
-        default: "live"
+        default: "dry-run"
         type: choice
         options:
-          - live
           - dry-run
+          - live
+      content_source:
+        description: "Content source (legacy is emergency rollback only)"
+        required: true
+        default: "socialmarket_outbox"
+        type: choice
+        options:
+          - socialmarket_outbox
+          - legacy_backlog
+  push:
+    branches:
+      - feat/socialmarket-outbox-executor
+    paths:
+      - .github/workflows/social-scheduler.yml
 
 concurrency:
   group: social-scheduler-buffer
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
+  id-token: write
 
 jobs:
   schedule-buffer:
@@ -28,13 +42,12 @@ jobs:
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
-      ASSET_REPOSITORY: "vmoulakakis/socialscheduler"
-      ASSET_REF: "main"
-      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'dry-run' }}
+      CONTENT_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.content_source || 'socialmarket_outbox' }}
+      SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -56,20 +69,6 @@ jobs:
         run: |
           echo "Buffer is rate limited. No Buffer writes will be attempted in this run."
           echo "Retry after: ${{ steps.buffer-preflight.outputs.retry_at_utc }}"
-      - name: Recover original media from existing Buffer Ideas
-        if: steps.buffer-preflight.outputs.available == 'true'
-        run: python -m scripts.sync_idea_assets
-      - name: Persist recovered media in repository
-        if: steps.buffer-preflight.outputs.available == 'true'
-        shell: bash
-        run: |
-          git add assets
-          if ! git diff --cached --quiet; then
-            git config user.name "socialscheduler-bot"
-            git config user.email "actions@users.noreply.github.com"
-            git commit -m "chore(assets): sync media from Buffer Ideas"
-            git push origin HEAD:main
-          fi
-      - name: Run scheduler
+      - name: Execute approved SocialMarket jobs
         if: steps.buffer-preflight.outputs.available == 'true'
         run: python -m src.main --mode "$SCHEDULER_MODE"
