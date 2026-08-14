@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from src.buffer_client import BufferClient, BufferAPIError
+from src.buffer_client import BufferAPIError, BufferClient, BufferRateLimitError
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKLOG = ROOT / "config" / "backlog.json"
@@ -75,13 +75,20 @@ def main() -> int:
         else:
             missing += 1
 
-    print(json.dumps({"downloaded": downloaded, "missing": missing}, indent=2))
+    print(json.dumps({"status": "completed", "downloaded": downloaded, "missing": missing}, indent=2))
     return 0
 
 
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
+    except BufferRateLimitError as exc:
+        print(json.dumps({
+            "status": "rate_limited",
+            "retry_after_seconds": exc.retry_after_seconds,
+            "action": "defer_without_writes",
+        }, indent=2))
+        raise SystemExit(0)
     except BufferAPIError as exc:
         print(f"Buffer asset sync failed: {exc}")
         raise SystemExit(2)
