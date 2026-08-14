@@ -1,0 +1,25 @@
+name: Migrate Legacy Backlog to SocialMarket
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SOCIALMARKET_OUTBOX_URL: "https://prrehmcvpyhupvlhtbzg.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-ai"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Import backlog idempotently
+        run: python -m scripts.migrate_socialmarket_backlog
