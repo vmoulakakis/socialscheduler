@@ -15,6 +15,13 @@ class BufferAPIError(RuntimeError):
     pass
 
 
+class BufferRateLimitError(BufferAPIError):
+    def __init__(self, retry_after_seconds: int | None = None):
+        self.retry_after_seconds = retry_after_seconds
+        suffix = f"; Retry-After={retry_after_seconds}s" if retry_after_seconds is not None else ""
+        super().__init__(f"Buffer HTTP 429 rate limited{suffix}")
+
+
 @dataclass
 class BufferClient:
     api_key: str
@@ -50,13 +57,12 @@ class BufferClient:
                     retry_after = exc.headers.get("Retry-After")
                     retry_after_seconds = int(retry_after) if retry_after and retry_after.isdigit() else None
                     if retry_after_seconds and retry_after_seconds > self.max_retry_after_seconds:
-                        raise BufferAPIError(
-                            f"Buffer HTTP 429 rate limited; Retry-After={retry_after_seconds}s exceeds safe runner wait"
-                        ) from exc
+                        raise BufferRateLimitError(retry_after_seconds) from exc
                     if attempt < self.max_retries:
                         delay = retry_after_seconds if retry_after_seconds is not None else min(30, 2 ** attempt * 5)
                         time.sleep(max(1, min(self.max_retry_after_seconds, delay)))
                         continue
+                    raise BufferRateLimitError(retry_after_seconds) from exc
                 detail = exc.read().decode("utf-8", errors="replace")
                 raise BufferAPIError(f"Buffer HTTP {exc.code}: {detail[:500]}") from exc
             except urllib.error.URLError as exc:
