@@ -1,4 +1,4 @@
-name: Migrate Legacy Backlog to SocialMarket
+name: Migrate Legacy Backlog to SocialMarket V2
 
 on:
   workflow_dispatch:
@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SOCIALMARKET_OUTBOX_URL: "https://prrehmcvpyhupvlhtbzg.supabase.co/functions/v1/publishing-outbox"
-      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-ai"
+      SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
