@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -45,7 +46,7 @@ def jobs_to_backlog(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
 @dataclass
 class SocialMarketOutboxClient:
     endpoint: str
-    audience: str = "socialmarket-ai"
+    audience: str = "socialmarket-v2-publishing"
     request_timeout_seconds: int = 20
     token_provider: Callable[[], str] | None = None
 
@@ -54,7 +55,7 @@ class SocialMarketOutboxClient:
         endpoint = os.getenv("SOCIALMARKET_OUTBOX_URL", "").strip()
         if not endpoint:
             raise SocialMarketOutboxError("SOCIALMARKET_OUTBOX_URL is required in SocialMarket outbox mode")
-        audience = os.getenv("SOCIALMARKET_OIDC_AUDIENCE", "socialmarket-ai").strip() or "socialmarket-ai"
+        audience = os.getenv("SOCIALMARKET_OIDC_AUDIENCE", "socialmarket-v2-publishing").strip() or "socialmarket-v2-publishing"
         return cls(endpoint=endpoint.rstrip("/"), audience=audience)
 
     def _github_oidc_token(self) -> str:
@@ -70,7 +71,7 @@ class SocialMarketOutboxClient:
         oidc_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), parsed.fragment))
         req = urllib.request.Request(
             oidc_url,
-            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/2.0"},
+            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/2.1"},
             method="GET",
         )
         try:
@@ -91,13 +92,20 @@ class SocialMarketOutboxClient:
             headers={
                 "Authorization": f"Bearer {self._github_oidc_token()}",
                 "Content-Type": "application/json",
-                "User-Agent": "socialscheduler/2.0",
+                "User-Agent": "socialscheduler/2.1",
             },
             method="POST",
         )
         try:
             with urllib.request.urlopen(req, timeout=self.request_timeout_seconds) as response:
                 result = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = ""
+            try:
+                detail = exc.read().decode("utf-8", errors="replace")[:2000]
+            except Exception:
+                pass
+            raise SocialMarketOutboxError(f"SocialMarket outbox HTTP {exc.code}: {detail or exc.reason}") from exc
         except Exception as exc:
             raise SocialMarketOutboxError(f"SocialMarket outbox request failed: {exc}") from exc
         if not result.get("ok"):
@@ -124,6 +132,7 @@ class SocialMarketOutboxClient:
         status: str,
         *,
         external_post_id: str | None = None,
+        external_permalink: str | None = None,
         scheduled_at: str | None = None,
         published_at: str | None = None,
         error: str | None = None,
@@ -134,6 +143,7 @@ class SocialMarketOutboxClient:
             "job_id": job_id,
             "status": status,
             "external_post_id": external_post_id,
+            "external_permalink": external_permalink,
             "scheduled_at": scheduled_at,
             "published_at": published_at,
             "error": error,
