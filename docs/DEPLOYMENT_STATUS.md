@@ -4,7 +4,7 @@
 
 The production scheduler stack is committed to `main`:
 
-- Buffer GraphQL client with 429 retry/backoff
+- Buffer GraphQL client with explicit rate-limit circuit breaking
 - six-brand Aug–Nov campaign backlog
 - organization/channel validation
 - reconciliation across draft / needs_approval / scheduled / sending / sent / error
@@ -24,31 +24,49 @@ The production scheduler stack is committed to `main`:
 ## Activation state
 
 **Code: READY**  
-**GitHub Action: CONFIGURED**  
-**Live Buffer publishing from GitHub: BLOCKED UNTIL `BUFFER_API_KEY` SECRET EXISTS**
+**GitHub Action: ACTIVE**  
+**`BUFFER_API_KEY` secret: PRESENT / confirmed by GitHub Actions**  
+**Current Buffer API state: RATE LIMITED / SAFE DEFER**
 
-The GitHub connector available during implementation does not expose repository-secret creation, so the Buffer API key cannot be safely inserted programmatically from this session.
+A Buffer Smoke workflow run on 2026-08-14 confirmed that the repository secret is present and available to the runner. The first live read then received HTTP 429 with `Retry-After=51900` seconds.
 
-Required one-time repository secret:
+The observed retry window ends at:
 
-`BUFFER_API_KEY`
+- `2026-08-15T10:01:29Z`
+- `2026-08-15 13:01:29 Europe/Athens`
 
-Create the API key in Buffer Settings → API, then save it in GitHub repository Settings → Secrets and variables → Actions → New repository secret.
+The scheduler now treats this condition as a safe defer rather than a deployment failure. While Buffer is throttled it performs **no Buffer writes**, does not attempt asset recovery, and does not run the scheduling mutation path.
 
-Never commit the key to the repository.
+Because the production workflow runs hourly at minute 17, the first normal scheduled attempt after the observed retry window is **2026-08-15 13:17 Europe/Athens**, subject to normal GitHub Actions scheduling delay.
+
+## Verified smoke behavior
+
+The rate-limit-aware Buffer Smoke run completed successfully with:
+
+- unit tests: PASS
+- `BUFFER_API_KEY` secret presence: PASS
+- Buffer preflight: classified `rate_limited`
+- asset recovery: SKIPPED
+- repository asset writes: SKIPPED
+- scheduler dry-run/write path: SKIPPED
+- overall job result: SUCCESS
+
+This is the intended behavior: external Buffer throttling must never cause early publishing, duplicate recovery, or repeated mutation attempts.
 
 ## Media bootstrap
 
-On the first authenticated workflow run, `scripts/sync_idea_assets.py` reads existing Buffer Ideas and downloads the original image media for backlog entries that already have saved Idea IDs. The workflow then commits those recovered images into `/assets` before running the scheduler.
+When Buffer becomes available, `scripts/sync_idea_assets.py` reads existing Buffer Ideas and downloads original image media for backlog entries that already have saved Idea IDs. The workflow then commits recovered images into `/assets` before running the scheduler.
 
-Campaigns whose creative does not yet exist in Buffer and is not committed under `/assets` remain safely blocked on Instagram/TikTok. Facebook may publish text-only content where the campaign allows it.
+Campaigns whose creative does not yet exist in Buffer and is not committed under `/assets` remain safely blocked on Instagram/TikTok. Facebook may publish text-only content only where the campaign configuration permits it.
 
-## Buffer API availability at implementation time
+## Buffer API availability
 
-A live Buffer connector check on 2026-08-14 returned HTTP 429 with a long `Retry-After`, so no claim is made here about the current live queue count. The GitHub scheduler contains its own 429 retry/backoff and will reconcile live state when the API accepts requests.
+The API is currently throttled at the account/API level. Because the preflight cannot yet complete an authenticated account read, the API key's **presence** is confirmed but successful Buffer authentication and current queue counts cannot be fully verified until the rate-limit window clears.
+
+No claim is made yet about the live scheduled queue count, Ideas count, current errors, or the Travel AI 12 Sep execution. Those will be reconciled from Buffer as soon as the API accepts reads again.
 
 ## Writer ownership
 
-Until the GitHub workflow has a valid `BUFFER_API_KEY` and completes a successful reconciliation run, existing ChatGPT recovery/monitoring automations should remain available as safety coverage.
+The separate ChatGPT `Social Campaign Scheduler` writer has been disabled to avoid competing scheduling writers. Reporting/monitoring/recovery safety coverage can remain available while GitHub owns the production scheduler path.
 
-After the GitHub scheduler is confirmed live, avoid two independent scheduling writers. Keep reporting/monitoring tasks, but disable any separate automation whose job is to independently fill the Buffer queue. This prevents race conditions and duplicate scheduling.
+Once a successful post-throttle Buffer reconciliation completes, the GitHub scheduler is the canonical queue-filling writer. Avoid enabling a second independent queue-filling scheduler, because that would introduce race and duplication risk.
