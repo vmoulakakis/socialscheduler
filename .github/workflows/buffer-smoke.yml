@@ -1,0 +1,59 @@
+name: Buffer Smoke
+
+on:
+  push:
+    paths:
+      - ".github/workflows/buffer-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: buffer-smoke
+  cancel-in-progress: false
+
+jobs:
+  verify-buffer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
+      ASSET_REPOSITORY: "vmoulakakis/socialscheduler"
+      ASSET_REF: "main"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Require Buffer API secret
+        shell: bash
+        run: |
+          if [ -z "$BUFFER_API_KEY" ]; then
+            echo "BUFFER_API_KEY secret is missing"
+            exit 1
+          fi
+          echo "BUFFER_API_KEY secret is present"
+      - name: Read-only Buffer smoke check
+        run: python -m scripts.buffer_smoke
+      - name: Recover media from existing Buffer Ideas
+        run: python -m scripts.sync_idea_assets
+      - name: Persist recovered media
+        shell: bash
+        run: |
+          git add assets
+          if ! git diff --cached --quiet; then
+            git config user.name "socialscheduler-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "chore(assets): bootstrap media from Buffer Ideas"
+            git push origin HEAD:main
+          else
+            echo "No new assets to persist"
+          fi
+      - name: Scheduler dry-run
+        run: python -m src.main --mode dry-run
