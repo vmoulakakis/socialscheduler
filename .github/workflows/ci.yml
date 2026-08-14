@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Python
+        run: python -m py_compile src/*.py scripts/*.py tests/*.py
+      - name: Validate JSON config
+        run: |
+          python -m json.tool config/settings.json >/dev/null
+          python -m json.tool config/channels.json >/dev/null
+          python -m json.tool config/backlog.json >/dev/null
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
