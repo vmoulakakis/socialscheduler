@@ -11,12 +11,12 @@ permissions:
 
 concurrency:
   group: buffer-smoke
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   verify-buffer:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
