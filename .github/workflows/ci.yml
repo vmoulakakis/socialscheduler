@@ -2,17 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - feat/socialmarket-outbox-executor
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,3 +30,18 @@ jobs:
           python -m json.tool config/backlog.json >/dev/null
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+      - name: SocialMarket V2 OIDC smoke
+        if: github.event_name == 'push'
+        env:
+          SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+          SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+        run: |
+          python - <<'PY'
+          import json
+          from src.socialmarket_outbox import SocialMarketOutboxClient
+          client = SocialMarketOutboxClient.from_env()
+          health = client.health()
+          jobs = client.peek(3)
+          assert health.get('executor_enabled') is False, health
+          print(json.dumps({'health': health, 'peek_count': len(jobs)}, indent=2))
+          PY
