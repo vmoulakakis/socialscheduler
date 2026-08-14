@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Safety-first Buffer social scheduler")
-    parser.add_argument("--mode", choices=["live", "dry-run"], default=os.getenv("SCHEDULER_MODE", "live"))
+    parser.add_argument("--mode", choices=["live", "dry-run"], default=os.getenv("SCHEDULER_MODE", "dry-run"))
     parser.add_argument("--settings", default=str(ROOT / "config" / "settings.json"))
     parser.add_argument("--channels", default=str(ROOT / "config" / "channels.json"))
     parser.add_argument("--backlog", default=str(ROOT / "config" / "backlog.json"))
@@ -30,7 +30,7 @@ def main() -> int:
     if os.getenv("ASSET_REF"):
         settings["asset_ref"] = os.environ["ASSET_REF"]
 
-    content_source = os.getenv("CONTENT_SOURCE", "legacy_backlog").strip() or "legacy_backlog"
+    content_source = os.getenv("CONTENT_SOURCE", "socialmarket_outbox").strip() or "socialmarket_outbox"
     outbox: SocialMarketOutboxClient | None = None
     try:
         if content_source == "socialmarket_outbox":
