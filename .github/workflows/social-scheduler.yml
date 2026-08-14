@@ -19,12 +19,12 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   schedule-buffer:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
@@ -33,6 +33,8 @@ jobs:
       SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -44,6 +46,18 @@ jobs:
           if [ -z "$BUFFER_API_KEY" ]; then
             echo "BUFFER_API_KEY GitHub Actions secret is missing."
             exit 1
+          fi
+      - name: Recover original media from existing Buffer Ideas
+        run: python scripts/sync_idea_assets.py
+      - name: Persist recovered media in repository
+        shell: bash
+        run: |
+          git add assets
+          if ! git diff --cached --quiet; then
+            git config user.name "socialscheduler-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "chore(assets): sync media from Buffer Ideas"
+            git push origin HEAD:main
           fi
       - name: Run scheduler
         run: python -m src.main --mode "$SCHEDULER_MODE"
