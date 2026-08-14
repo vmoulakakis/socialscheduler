@@ -1,76 +1,75 @@
-# Social Scheduler — Buffer Autopilot
+# Social Scheduler — Buffer Execution Engine
 
-Safety-first, fully automated Buffer scheduler for the Aug–Nov 2026 social portfolio:
+Safety-first publishing executor for Facebook, Instagram and TikTok.
 
-- CoffeeGo AI
-- CabinPilot Travel
-- CabinPilot Smart Savings
-- Λύσεις που Αξίζουν / Biz Box Solver
-- Travel AI / GreekVibes
-- Red Raven Eyewear
+**Production content is owned exclusively by SocialMarket AI.** SocialScheduler does not discover products, invent campaigns, choose brands, or maintain a second production content plan.
 
-## Fast interaction — add a new tracking URL
+## Production contract
 
-You do not need to edit JSON manually.
+`SocialMarket AI → publishing_outbox → SocialScheduler → Buffer → FB / IG / TikTok → status back to SocialMarket`
 
-### In ChatGPT
+SocialMarket stores the canonical brand/site, content item, creative, caption, platform payload and intended publishing time. SocialScheduler receives only approved outbox executions.
 
-Use:
+## What the hourly workflow does
 
-`NEW TRACKING URL: <exact URL> | BRAND: <brand> | ANGLE: <hook> | DATE: YYYY-MM-DD HH:MM | PLATFORMS: instagram,facebook,tiktok | ASSET: auto-card`
+1. authenticates to Buffer;
+2. verifies the configured organization and connected channels;
+3. obtains a short-lived GitHub Actions OIDC token;
+4. authenticates to the SocialMarket `publishing-outbox` Edge Function;
+5. claims only explicitly dated, approved outbox jobs;
+6. reads current Buffer `scheduled`, `sending`, `error`, `sent`, `draft` and `needs_approval` posts;
+7. deduplicates against executions already consumed;
+8. protects against early publication and forbids `shareNow` / `shareNext`;
+9. fills only available slots in the rolling Buffer queue, never exceeding **10**;
+10. blocks Instagram/TikTok when media is missing or unreachable;
+11. interleaves brands so one brand does not monopolize the active queue;
+12. acknowledges Buffer post IDs/status back to SocialMarket;
+13. maps Buffer `sent` → SocialMarket `published` and Buffer `error` → SocialMarket `failed`.
 
-### In GitHub
+## Authentication
 
-Open **Issues → New issue → ➕ New Tracking URL**.
+No SocialMarket shared secret is stored in this public repository.
 
-The intake pipeline preserves the exact tracking URL, creates/reuses a tracking-source ID, creates one deterministic campaign, generates different copy for each selected platform, creates a unique fallback PNG when `auto-card` is selected, validates the repo, and commits the desired campaign state. Editing the same issue updates the same campaign instead of producing duplicates.
+GitHub Actions has `id-token: write` and requests an OIDC JWT with audience `socialmarket-ai`. The SocialMarket Edge Function validates:
+- issuer `https://token.actions.githubusercontent.com`;
+- audience `socialmarket-ai`;
+- repository `vmoulakakis/socialscheduler`;
+- production ref `refs/heads/main`.
 
-Tracking intake never publishes directly. Buffer scheduling remains owned exclusively by the `Social Scheduler` workflow.
+Buffer still uses the repository secret `BUFFER_API_KEY`.
 
-See `docs/INTERACTION.md` for the full contract.
+## Legacy backlog
 
-## What it does
+`config/backlog.json` is retained only as **rollback/archive input**. Scheduled production runs use:
 
-Every hour the GitHub Action runs the scheduler, which:
+`CONTENT_SOURCE=socialmarket_outbox`
 
-1. authenticates to the current Buffer GraphQL API;
-2. verifies the configured organization and all three connected channels;
-3. reads `scheduled`, `sending`, `error`, `sent`, `draft`, `needs_approval` posts and Buffer Ideas;
-4. creates missing durable Ideas from `config/backlog.json`;
-5. deduplicates against exact executions already sent/scheduled/sending;
-6. protects against the 2026-08-14 early-publish failure mode;
-7. fills only available slots in the rolling Buffer queue, never exceeding **10**;
-8. uses only `customScheduled` for campaign backlog — `shareNow` and `shareNext` are rejected;
-9. blocks Instagram/TikTok when media is missing/unreachable;
-10. blocks claim-sensitive campaigns until current facts are verified;
-11. interleaves brands so one brand does not monopolize the active queue.
+A manual emergency workflow may temporarily select `legacy_backlog`, but it is not the production source of truth.
 
-Buffer's current API is GraphQL at `https://api.buffer.com` and uses a Bearer API key.
+The one-time workflow **Migrate Legacy Backlog to SocialMarket** imports the existing backlog idempotently into SocialMarket. Held or verification-sensitive campaigns are not made executable automatically.
 
-## One-time setup
+## Safety invariants
 
-1. In Buffer, create an API key under **Settings → API**.
-2. In this GitHub repository, add Actions secret **`BUFFER_API_KEY`**.
-3. Upload preferred supplied creatives into `/assets`, or use the tracking intake `auto-card` fallback.
-4. Run **Actions → Social Scheduler → Run workflow → dry-run** once.
-5. If the output is clean, run `live`. The hourly schedule will then maintain the rolling queue automatically.
+- never publish a future-dated item early;
+- never invent a publishing time;
+- only `customScheduled` is allowed;
+- queue fullness is never more important than correctness;
+- no blind retries after ambiguous Buffer errors;
+- Instagram/TikTok require valid media;
+- an outbox lease expires safely if a workflow crashes before scheduling;
+- one canonical content item may have platform-specific execution rows, but there is no independent scheduler-authored campaign copy.
 
-See `docs/BUFFER_SETUP.md`, `docs/OPERATIONS.md`, `docs/MASTER_SOURCE.md`, `docs/INTERACTION.md`, and `docs/TASKS.md`.
-
-## Local test
+## Local tests
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## Local dry-run/live
+Legacy local mode remains available for rollback testing:
 
 ```bash
 export BUFFER_API_KEY='...'
-python -m src.main --mode dry-run
-python -m src.main --mode live
+CONTENT_SOURCE=legacy_backlog python -m src.main --mode dry-run
 ```
 
-## Safety note
-
-Queue fullness is never prioritized over correctness. If media or fresh verification is unavailable, the scheduler leaves capacity unused rather than publishing unsafe or malformed content.
+Production SocialMarket mode requires GitHub Actions OIDC and therefore is intended to run inside the workflow.
