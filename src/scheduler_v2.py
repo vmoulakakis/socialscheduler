@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from . import scheduler as core
@@ -16,15 +16,27 @@ core.CONSUMED_STATUSES = {"scheduled", "sending", "sent", "error"}
 class SocialScheduler(BaseSocialScheduler):
     """Production Buffer executor with conservative error handling.
 
-    In SocialMarket outbox mode this class does not invent campaigns or Buffer Ideas.
-    It receives already-approved executions and owns only scheduling/publishing.
+    In SocialMarket outbox mode this class does not invent campaigns, dates or
+    Buffer Ideas. It receives already-approved executions and owns only the
+    delivery state machine.
     """
+
+    def _future_target(self, ex: Execution, now: datetime) -> datetime | None:
+        if self.settings.get("content_source") == "socialmarket_outbox":
+            # The business/content system owns timing. An executor must never move
+            # an expired campaign to a convenient future slot by itself.
+            return ex.target_at if ex.target_at > now + timedelta(minutes=2) else None
+        return super()._future_target(ex, now)
 
     def _post_input(self, ex: Execution, due_at: datetime) -> dict[str, Any]:
         data = super()._post_input(ex, due_at)
         if self.settings.get("content_source") == "socialmarket_outbox":
             data["source"] = f"socialmarket:{ex.campaign_id}:{ex.service}"
         return data
+
+    @staticmethod
+    def _consumed_rank(post: dict[str, Any]) -> int:
+        return {"sent": 4, "sending": 3, "scheduled": 2, "error": 1}.get(str(post.get("status")), 0)
 
     def reconcile_and_fill(self, executions: list[Execution], posts: list[dict[str, Any]]) -> None:
         for post in posts:
@@ -36,7 +48,46 @@ class SocialScheduler(BaseSocialScheduler):
                     "ideaId": post.get("ideaId"),
                     "reason": "manual_or_classified_recovery_required_before_retry",
                 })
-        super().reconcile_and_fill(executions, posts)
+
+        if self.settings.get("content_source") != "socialmarket_outbox":
+            super().reconcile_and_fill(executions, posts)
+            return
+
+        # Migration safety: the old scheduler may already have scheduled/sent the
+        # exact execution before it was imported into SocialMarket. Reconcile that
+        # execution to the existing Buffer post instead of creating a duplicate or
+        # leaving the outbox lease to cycle forever.
+        consumed_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+        for post in posts:
+            if post.get("status") not in core.CONSUMED_STATUSES:
+                continue
+            key = self._post_key(post)
+            existing = consumed_by_key.get(key)
+            if existing is None or self._consumed_rank(post) > self._consumed_rank(existing):
+                consumed_by_key[key] = post
+
+        remaining: list[Execution] = []
+        for ex in executions:
+            existing = consumed_by_key.get(self._execution_key(ex))
+            if not existing:
+                remaining.append(ex)
+                continue
+            status = existing.get("status")
+            common = {
+                "campaign": ex.campaign_id,
+                "service": ex.service,
+                "postId": existing.get("id"),
+                "dueAt": existing.get("dueAt"),
+                "sentAt": existing.get("sentAt"),
+            }
+            if status == "sent":
+                self.actions.append({"type": "already_published", **common})
+            elif status == "error":
+                self.actions.append({"type": "already_error", **common, "reason": "buffer_status_error"})
+            else:
+                self.actions.append({"type": "already_scheduled", **common})
+
+        super().reconcile_and_fill(remaining, posts)
 
     def run(self) -> dict[str, Any]:
         org_id = self.settings["organization_id"]
