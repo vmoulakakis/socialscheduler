@@ -47,7 +47,62 @@ class SocialMarketOutboxTests(unittest.TestCase):
             "scheduled",
             external_post_id="buffer-99",
             scheduled_at="2026-08-21T18:00:00+03:00",
-            metadata={"platform": "facebook"},
+            metadata={"platform": "facebook", "reconciled_existing": False},
+        )
+
+    def test_existing_buffer_schedule_closes_migration_lease(self):
+        client = SocialMarketOutboxClient(endpoint="https://example.test", token_provider=lambda: "token")
+        client.ack = Mock(return_value={"ok": True})
+        counts = client.sync_scheduler_actions([{
+            "type": "already_scheduled",
+            "campaign": "job-migrated",
+            "service": "instagram",
+            "postId": "buffer-existing",
+            "dueAt": "2026-08-20T19:00:00+03:00",
+        }])
+        self.assertEqual(counts["scheduled"], 1)
+        client.ack.assert_called_once_with(
+            "job-migrated",
+            "scheduled",
+            external_post_id="buffer-existing",
+            scheduled_at="2026-08-20T19:00:00+03:00",
+            metadata={"platform": "instagram", "reconciled_existing": True},
+        )
+
+    def test_existing_sent_post_is_not_republished(self):
+        client = SocialMarketOutboxClient(endpoint="https://example.test", token_provider=lambda: "token")
+        client.ack = Mock(return_value={"ok": True})
+        counts = client.sync_scheduler_actions([{
+            "type": "already_published",
+            "campaign": "job-sent",
+            "service": "facebook",
+            "postId": "buffer-sent",
+            "sentAt": "2026-08-14T18:00:00Z",
+        }])
+        self.assertEqual(counts["published"], 1)
+        client.ack.assert_called_once_with(
+            "job-sent",
+            "published",
+            external_post_id="buffer-sent",
+            published_at="2026-08-14T18:00:00Z",
+            metadata={"platform": "facebook", "reconciled_existing": True},
+        )
+
+    def test_expired_job_is_failed_not_rescheduled(self):
+        client = SocialMarketOutboxClient(endpoint="https://example.test", token_provider=lambda: "token")
+        client.ack = Mock(return_value={"ok": True})
+        counts = client.sync_scheduler_actions([{
+            "type": "skip_late",
+            "campaign": "job-expired",
+            "service": "tiktok",
+        }])
+        self.assertEqual(counts["failed"], 1)
+        client.ack.assert_called_once_with(
+            "job-expired",
+            "failed",
+            external_post_id=None,
+            error="scheduled_time_elapsed",
+            metadata={"platform": "tiktok"},
         )
 
     def test_buffer_sent_marks_socialmarket_job_published(self):
