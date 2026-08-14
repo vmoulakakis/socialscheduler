@@ -9,6 +9,26 @@ Safety-first, fully automated Buffer scheduler for the Aug–Nov 2026 social por
 - Travel AI / GreekVibes
 - Red Raven Eyewear
 
+## Fast interaction — add a new tracking URL
+
+You do not need to edit JSON manually.
+
+### In ChatGPT
+
+Use:
+
+`NEW TRACKING URL: <exact URL> | BRAND: <brand> | ANGLE: <hook> | DATE: YYYY-MM-DD HH:MM | PLATFORMS: instagram,facebook,tiktok | ASSET: auto-card`
+
+### In GitHub
+
+Open **Issues → New issue → ➕ New Tracking URL**.
+
+The intake pipeline preserves the exact tracking URL, creates/reuses a tracking-source ID, creates one deterministic campaign, generates different copy for each selected platform, creates a unique fallback PNG when `auto-card` is selected, validates the repo, and commits the desired campaign state. Editing the same issue updates the same campaign instead of producing duplicates.
+
+Tracking intake never publishes directly. Buffer scheduling remains owned exclusively by the `Social Scheduler` workflow.
+
+See `docs/INTERACTION.md` for the full contract.
+
 ## What it does
 
 Every hour the GitHub Action runs the scheduler, which:
@@ -25,17 +45,17 @@ Every hour the GitHub Action runs the scheduler, which:
 10. blocks claim-sensitive campaigns until current facts are verified;
 11. interleaves brands so one brand does not monopolize the active queue.
 
-Buffer's current API is GraphQL at `https://api.buffer.com` and uses a Bearer API key. The implementation follows the current official Buffer developer model for organizations, channels, Ideas and `createPost(customScheduled)`.
+Buffer's current API is GraphQL at `https://api.buffer.com` and uses a Bearer API key.
 
 ## One-time setup
 
 1. In Buffer, create an API key under **Settings → API**.
 2. In this GitHub repository, add Actions secret **`BUFFER_API_KEY`**.
-3. Upload the supplied PNG creatives into `/assets` using the exact filenames in `config/backlog.json`.
+3. Upload preferred supplied creatives into `/assets`, or use the tracking intake `auto-card` fallback.
 4. Run **Actions → Social Scheduler → Run workflow → dry-run** once.
 5. If the output is clean, run `live`. The hourly schedule will then maintain the rolling queue automatically.
 
-See `docs/BUFFER_SETUP.md`, `docs/OPERATIONS.md`, and `docs/MASTER_SOURCE.md`.
+See `docs/BUFFER_SETUP.md`, `docs/OPERATIONS.md`, `docs/MASTER_SOURCE.md`, `docs/INTERACTION.md`, and `docs/TASKS.md`.
 
 ## Local test
 
