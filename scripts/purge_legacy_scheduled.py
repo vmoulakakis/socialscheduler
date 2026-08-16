@@ -38,12 +38,8 @@ def main() -> int:
     candidates = []
     for post in posts:
         due = parse_dt(post.get("dueAt"))
-        if not due or not (START <= due < END):
-            continue
-        # Legacy scheduler created durable Buffer Ideas. SocialMarket outbox mode does not.
-        if not post.get("ideaId"):
-            continue
-        candidates.append(post)
+        if due and START <= due < END:
+            candidates.append(post)
 
     deleted = []
     for post in candidates:
@@ -52,9 +48,10 @@ def main() -> int:
 
     print(json.dumps({
         "ok": True,
+        "reason": "superseded_by_socialmarket_pain_solver_campaign",
         "window": {"start": START.isoformat(), "end": END.isoformat()},
         "scheduled_seen": len(posts),
-        "legacy_candidates": len(candidates),
+        "window_candidates": len(candidates),
         "deleted": deleted,
     }, ensure_ascii=False, indent=2))
     return 0
