@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -86,31 +87,37 @@ class SocialMarketOutboxClient:
 
     def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        req = urllib.request.Request(
-            self.endpoint,
-            data=body,
-            headers={
-                "Authorization": f"Bearer {self._github_oidc_token()}",
-                "Content-Type": "application/json",
-                "User-Agent": "socialscheduler/2.2",
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=self.request_timeout_seconds) as response:
-                result = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            detail = ""
+        for attempt in range(2):
+            req = urllib.request.Request(
+                self.endpoint,
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {self._github_oidc_token()}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "socialscheduler/2.2",
+                },
+                method="POST",
+            )
             try:
-                detail = exc.read().decode("utf-8", errors="replace")[:2000]
-            except Exception:
-                pass
-            raise SocialMarketOutboxError(f"SocialMarket outbox HTTP {exc.code}: {detail or exc.reason}") from exc
-        except Exception as exc:
-            raise SocialMarketOutboxError(f"SocialMarket outbox request failed: {exc}") from exc
-        if not result.get("ok"):
-            raise SocialMarketOutboxError(str(result.get("error") or "SocialMarket outbox returned an error"))
-        return result
+                with urllib.request.urlopen(req, timeout=self.request_timeout_seconds) as response:
+                    result = json.loads(response.read().decode("utf-8"))
+            except urllib.error.HTTPError as exc:
+                detail = ""
+                try:
+                    detail = exc.read().decode("utf-8", errors="replace")[:2000]
+                except Exception:
+                    pass
+                transient_timeout = exc.code == 503 and "request timed out" in detail.lower()
+                if transient_timeout and attempt == 0:
+                    time.sleep(1)
+                    continue
+                raise SocialMarketOutboxError(f"SocialMarket outbox HTTP {exc.code}: {detail or exc.reason}") from exc
+            except Exception as exc:
+                raise SocialMarketOutboxError(f"SocialMarket outbox request failed: {exc}") from exc
+            if not result.get("ok"):
+                raise SocialMarketOutboxError(str(result.get("error") or "SocialMarket outbox returned an error"))
+            return result
+        raise SocialMarketOutboxError("SocialMarket outbox request failed after retry")
 
     def health(self) -> dict[str, Any]:
         return self._post({"action": "health"})
