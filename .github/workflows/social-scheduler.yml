@@ -32,6 +32,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
   id-token: write
 
 jobs:
@@ -45,13 +46,16 @@ jobs:
       CONTENT_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.content_source || 'socialmarket_outbox' }}
       SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+      TRUTH_ARTIFACT_DIR: artifacts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+
       - name: Require Buffer API secret
         shell: bash
         run: |
@@ -59,15 +63,58 @@ jobs:
             echo "BUFFER_API_KEY GitHub Actions secret is missing."
             exit 1
           fi
+
+      - name: Prepare truth artifacts
+        run: mkdir -p artifacts
+
       - name: Buffer preflight and reconciliation snapshot
         id: buffer-preflight
-        run: python -m scripts.buffer_smoke
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m scripts.buffer_smoke | tee artifacts/buffer-preflight.json
+
       - name: Rate-limit safe defer
         if: steps.buffer-preflight.outputs.status == 'rate_limited'
         shell: bash
         run: |
           echo "Buffer is rate limited. No Buffer writes will be attempted in this run."
           echo "Retry after: ${{ steps.buffer-preflight.outputs.retry_at_utc }}"
+
       - name: Execute approved SocialMarket jobs
         if: steps.buffer-preflight.outputs.available == 'true'
-        run: python -m src.main --mode "$SCHEDULER_MODE"
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m src.main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
+
+      - name: Build Admin Full Truth dashboard
+        id: truth-dashboard
+        if: always()
+        shell: bash
+        run: |
+          python -m scripts.full_truth_dashboard | tee artifacts/dashboard-build.json
+          cat artifacts/admin-dashboard.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Update persistent Admin Dashboard issue
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          body = Path('artifacts/admin-dashboard.md').read_text(encoding='utf-8')
+          Path('artifacts/issue-patch.json').write_text(json.dumps({'body': body}, ensure_ascii=False), encoding='utf-8')
+          PY
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/5" --input artifacts/issue-patch.json
+
+      - name: Upload Full Truth audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialscheduler-full-truth-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
