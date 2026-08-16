@@ -25,17 +25,15 @@ def main() -> int:
     env_org = os.getenv("BUFFER_ORGANIZATION_ID", "").strip()
     if env_org:
         settings["organization_id"] = env_org
-    if os.getenv("ASSET_REPOSITORY"):
-        settings["asset_repo"] = os.environ["ASSET_REPOSITORY"]
-    if os.getenv("ASSET_REF"):
-        settings["asset_ref"] = os.environ["ASSET_REF"]
 
-    content_source = os.getenv("CONTENT_SOURCE", "legacy_backlog").strip() or "legacy_backlog"
+    # Production truth is SocialMarket. Legacy backlog exists only as explicit rollback input.
+    content_source = os.getenv("CONTENT_SOURCE", "socialmarket_outbox").strip() or "socialmarket_outbox"
     outbox: SocialMarketOutboxClient | None = None
     try:
         if content_source == "socialmarket_outbox":
             outbox = SocialMarketOutboxClient.from_env()
             limit = int(settings.get("max_creates_per_run", settings.get("queue_limit", 10)))
+            # Dry-run must never mutate/lease the canonical queue.
             jobs = outbox.peek(limit) if args.mode == "dry-run" else outbox.claim(limit)
             backlog = jobs_to_backlog(jobs)
             settings["content_source"] = "socialmarket_outbox"
@@ -59,6 +57,7 @@ def main() -> int:
     try:
         result = scheduler.run()
     except BufferRateLimitError as exc:
+        # In live mode a leased job simply expires safely; do not ACK a guessed state.
         print(json.dumps({
             "ok": True,
             "status": "rate_limited",
