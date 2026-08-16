@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any
 
 from . import scheduler as core
 from .buffer_client import BufferAPIError
 from .scheduler import Execution, SocialScheduler as BaseSocialScheduler
+from .truth_status import queue_slo
 
 core.CONSUMED_STATUSES = {"scheduled", "sending", "sent", "error"}
 
 
 class SocialScheduler(BaseSocialScheduler):
-    """Production Buffer executor with conservative error handling."""
+    """Production Buffer executor with conservative error handling and explicit fill SLO truth."""
 
     def _future_target(self, ex: Execution, now: datetime) -> datetime | None:
         if self.settings.get("content_source") == "socialmarket_outbox":
@@ -88,6 +90,7 @@ class SocialScheduler(BaseSocialScheduler):
             raise BufferAPIError(f"Configured Buffer channels are missing/disconnected: {missing}")
 
         posts = self.client.posts(org_id, core.STATUS_READ_SET)
+        initial_active = sum(1 for p in posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES)
         executions = self.expand()
 
         if self.settings.get("content_source") == "socialmarket_outbox":
@@ -98,19 +101,64 @@ class SocialScheduler(BaseSocialScheduler):
             self.ensure_ideas(executions, ideas)
 
         self.reconcile_and_fill(executions, posts)
+        scheduled_created = sum(1 for action in self.actions if action.get("type") == "scheduled")
+        would_schedule = sum(1 for action in self.actions if action.get("type") == "would_schedule")
+
+        # Full truth: after live writes, re-read Buffer only when this run created posts.
+        # This avoids reporting the pre-write queue as if it were the final state.
+        final_posts = posts
+        if self.mode == "live" and scheduled_created > 0:
+            final_posts = self.client.posts(org_id, core.STATUS_READ_SET)
+
+        observed_active = sum(1 for p in final_posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES)
+        effective_active = observed_active if self.mode == "live" else min(
+            int(self.settings["queue_limit"]), initial_active + would_schedule
+        )
+        slo = queue_slo(effective_active, int(self.settings["queue_limit"]))
+
+        if not slo["met"]:
+            self.actions.append({
+                "type": "queue_underfilled",
+                "severity": "CRITICAL",
+                "active": slo["active_queue"],
+                "limit": slo["queue_limit"],
+                "missing_slots": slo["missing_slots"],
+                "reason": "approved_supply_or_execution_shortage",
+            })
+
+        status_counts = Counter(str(p.get("status") or "unknown") for p in final_posts)
+        channel_service = {meta["id"]: service for service, meta in self.channels.items()}
+        next_scheduled = sorted(
+            [
+                {
+                    "id": p.get("id"),
+                    "status": p.get("status"),
+                    "channelId": p.get("channelId"),
+                    "service": channel_service.get(p.get("channelId"), "unknown"),
+                    "dueAt": p.get("dueAt"),
+                }
+                for p in final_posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES
+            ],
+            key=lambda row: str(row.get("dueAt") or ""),
+        )
 
         return {
             "mode": self.mode,
             "organization": org_id,
             "timezone": self.settings["timezone"],
             "content_source": self.settings.get("content_source", "legacy_backlog"),
-            "posts_seen": len(posts),
+            "posts_seen": len(final_posts),
             "ideas_seen": len(ideas),
-            "active_queue": sum(1 for p in posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES),
-            "queue_limit": self.settings["queue_limit"],
+            "active_queue": slo["active_queue"],
+            "queue_limit": slo["queue_limit"],
+            "queue_slo": slo,
+            "initial_active_queue": initial_active,
+            "scheduled_created": scheduled_created,
+            "post_write_status_counts": dict(status_counts),
+            "next_scheduled": next_scheduled,
             "buffer_posts": [
                 {"id": p.get("id"), "status": p.get("status"), "dueAt": p.get("dueAt"), "sentAt": p.get("sentAt")}
-                for p in posts if p.get("id")
+                for p in final_posts if p.get("id")
             ],
             "actions": self.actions,
         }
