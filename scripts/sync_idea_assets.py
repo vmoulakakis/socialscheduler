@@ -5,6 +5,7 @@ import os
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlparse
 
 from src.buffer_client import BufferAPIError, BufferClient, BufferRateLimitError
 
@@ -20,8 +21,14 @@ def load_backlog() -> list[dict]:
 
 
 def download(url: str, destination: Path) -> bool:
-    request = urllib.request.Request(url, headers={"User-Agent": "socialscheduler/1.0"})
+    url = str(url or "").strip()
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        print(f"skip {destination.name}: media URL is not public http(s): {url!r}")
+        return False
+
     try:
+        request = urllib.request.Request(url, headers={"User-Agent": "socialscheduler/1.0"})
         with urllib.request.urlopen(request, timeout=45) as response:
             content_type = (response.headers.get("Content-Type") or "").lower()
             if content_type and not (content_type.startswith("image/") or content_type == "application/octet-stream"):
