@@ -1,2 +1,2 @@
-trigger: 2026-08-16T18:05:00+03:00
-reason: rerun Full Truth production validation after enabling SocialScheduler V3 executor
+trigger: 2026-08-17T01:01:00+03:00
+reason: validate Buffer recovery after truth and resilience repair
