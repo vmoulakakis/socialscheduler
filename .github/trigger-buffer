@@ -1,2 +1,2 @@
-trigger: 2026-08-16T04:14:00+03:00
-reason: retry live SocialMarket pain-solver schedule after claim SQL fix and clean Buffer queue
+trigger: 2026-08-16T16:55:00+03:00
+reason: load ChatGPT Sites Facebook promo campaign into SocialMarket production outbox
