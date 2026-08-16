@@ -1,0 +1,41 @@
+name: Buffer Target Reconcile
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/trigger-buffer-target-reconcile"
+
+concurrency:
+  group: buffer-target-reconcile
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
+      RECONCILE_EXPORT_PATH: artifacts/buffer-target-reconciliation.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require Buffer API secret
+        run: |
+          test -n "$BUFFER_API_KEY" || (echo "BUFFER_API_KEY missing" && exit 1)
+      - name: Reconcile target Buffer posts
+        run: python -m scripts.reconcile_buffer_targets
+      - name: Upload reconciliation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: buffer-target-reconciliation-${{ github.run_number }}
+          path: artifacts/buffer-target-reconciliation.json
+          if-no-files-found: error
+          retention-days: 30
