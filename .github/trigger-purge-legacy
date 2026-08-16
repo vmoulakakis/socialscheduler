@@ -1,2 +1,2 @@
-trigger: 2026-08-16T04:06:00+03:00
-reason: replace legacy scheduled portfolio with SocialMarket pain-solver campaign window 2026-08-18 to 2026-11-30
+trigger: 2026-08-16T04:12:00+03:00
+reason: remove all currently scheduled Buffer posts in 2026-08-18 through 2026-11-30 before pain-solver live queue starts
