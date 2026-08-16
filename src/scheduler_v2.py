@@ -162,10 +162,78 @@ class SocialScheduler(BaseSocialScheduler):
             self.ensure_ideas(executions, ideas)
 
         self.reconcile_and_fill(executions, posts)
-        active_by_service = {
+        per_channel_limit = int(self.settings.get("queue_limit_per_channel", 10))
+        initial_active_by_service = {
             service: sum(1 for p in posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES and p.get("channelId") == meta["id"])
             for service, meta in self.channels.items()
         }
+        accepted_action = "scheduled" if self.mode == "live" else "would_schedule"
+        scheduled_by_service = {
+            service: sum(1 for action in self.actions if action.get("type") == accepted_action and action.get("service") == service)
+            for service in self.channels
+        }
+        post_write_active_by_service = {
+            service: min(per_channel_limit, initial_active_by_service.get(service, 0) + scheduled_by_service.get(service, 0))
+            for service in self.channels
+        }
+        channel_queue_slo = {
+            service: {
+                "active": post_write_active_by_service.get(service, 0),
+                "limit": per_channel_limit,
+                "missing": max(0, per_channel_limit - post_write_active_by_service.get(service, 0)),
+                "fill_rate_pct": round(100.0 * post_write_active_by_service.get(service, 0) / max(1, per_channel_limit), 2),
+                "met": post_write_active_by_service.get(service, 0) >= per_channel_limit,
+            }
+            for service in self.channels
+        }
+        for service, truth in channel_queue_slo.items():
+            if not truth["met"]:
+                self.actions.append({
+                    "type": "queue_underfilled",
+                    "severity": "CRITICAL",
+                    "service": service,
+                    "channelId": self.channels[service]["id"],
+                    "active": truth["active"],
+                    "limit": truth["limit"],
+                    "missing_slots": truth["missing"],
+                    "reason": "approved_supply_or_execution_shortage",
+                })
+
+        total_active = sum(post_write_active_by_service.values())
+        total_limit = per_channel_limit * len(self.channels)
+        total_missing = max(0, total_limit - total_active)
+        queue_slo = {
+            "active": total_active,
+            "limit": total_limit,
+            "missing": total_missing,
+            "fill_rate_pct": round(100.0 * total_active / max(1, total_limit), 2),
+            "met": all(row["met"] for row in channel_queue_slo.values()),
+            "severity": "OK" if all(row["met"] for row in channel_queue_slo.values()) else "CRITICAL",
+        }
+
+        service_by_channel = {meta["id"]: service for service, meta in self.channels.items()}
+        next_scheduled = [
+            {
+                "id": post.get("id"),
+                "service": service_by_channel.get(post.get("channelId"), "unknown"),
+                "channelId": post.get("channelId"),
+                "dueAt": post.get("dueAt"),
+                "source": "buffer_snapshot",
+            }
+            for post in posts if post.get("status") in core.ACTIVE_QUEUE_STATUSES
+        ]
+        next_scheduled.extend(
+            {
+                "id": action.get("postId"),
+                "service": action.get("service"),
+                "channelId": (self.channels.get(str(action.get("service"))) or {}).get("id"),
+                "dueAt": action.get("dueAt"),
+                "source": "buffer_create_ack" if self.mode == "live" else "dry_run",
+            }
+            for action in self.actions if action.get("type") == accepted_action
+        )
+        next_scheduled.sort(key=lambda row: str(row.get("dueAt") or ""))
+
         return {
             "mode": self.mode,
             "organization": org_id,
@@ -173,8 +241,15 @@ class SocialScheduler(BaseSocialScheduler):
             "content_source": self.settings.get("content_source", "legacy_backlog"),
             "posts_seen": len(posts),
             "ideas_seen": len(ideas),
-            "active_queue": sum(active_by_service.values()),
-            "active_by_service": active_by_service,
-            "queue_limit_per_channel": int(self.settings.get("queue_limit_per_channel", 10)),
+            "initial_active_queue": sum(initial_active_by_service.values()),
+            "initial_active_by_service": initial_active_by_service,
+            "scheduled_by_service": scheduled_by_service,
+            "active_queue": total_active,
+            "active_by_service": post_write_active_by_service,
+            "queue_limit_per_channel": per_channel_limit,
+            "queue_slo": queue_slo,
+            "channel_queue_slo": channel_queue_slo,
+            "next_scheduled": next_scheduled,
+            "full_truth_source": "single_runtime_snapshot_plus_buffer_create_ack",
             "actions": self.actions,
         }

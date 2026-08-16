@@ -111,16 +111,22 @@ def main() -> int:
 
     if outbox:
         result["outbox_jobs_received"] = len(backlog)
+        result["outbox_jobs_received_by_platform"] = dict(Counter(job.get("platform") for job in jobs))
         if args.mode == "live":
             try:
-                # v3 ACK archives successful delivery to publish.delivery_history and
-                # deletes the live outbox row. Weekly metrics update history directly.
+                # v3 ACK archives successful Buffer schedules immediately while
+                # retaining delivery history for analytics and daily truth reports.
                 result["outbox_sync"] = outbox.sync_scheduler_actions(result.get("actions", []))
+                pending = outbox.peek(50)
+                result["outbox_pending_preview_count"] = len(pending)
+                result["outbox_pending_by_platform"] = dict(Counter(job.get("platform") for job in pending))
             except SocialMarketOutboxError as exc:
                 result["outbox_sync"] = {"error": str(exc)}
                 print(json.dumps({"ok": False, "status": "outbox_ack_error", **result}, ensure_ascii=False, indent=2))
                 return 3
         else:
+            result["outbox_pending_preview_count"] = len(jobs)
+            result["outbox_pending_by_platform"] = dict(Counter(job.get("platform") for job in jobs))
             result["outbox_sync"] = {"dry_run": True, "mutations": 0}
 
     scheduled = sum(1 for action in result.get("actions", []) if action.get("type") == "scheduled")

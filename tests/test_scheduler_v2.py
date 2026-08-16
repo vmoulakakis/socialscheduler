@@ -7,12 +7,32 @@ class FakeClient:
     pass
 
 
+class FakeRuntimeClient:
+    def runtime_snapshot(self, organization_id):
+        return {
+            "account": {"organizations": [{"id": organization_id, "name": "Org"}]},
+            "channels": [{"id": "fb", "name": "FB", "service": "facebook"}],
+            "posts": [
+                {
+                    "id": f"p-{i}",
+                    "status": "scheduled",
+                    "channelId": "fb",
+                    "text": f"existing {i}",
+                    "dueAt": "2099-01-01T09:00:00+02:00",
+                }
+                for i in range(9)
+            ],
+            "has_next_page": False,
+        }
+
+
 SETTINGS = {
     "organization_id": "org",
     "timezone": "Europe/Athens",
     "queue_limit": 10,
+    "queue_limit_per_channel": 10,
     "idea_limit": 100,
-    "max_creates_per_run": 10,
+    "max_creates_per_run": 30,
     "late_item_policy": "defer",
     "late_item_defer_days": 3,
     "content_source": "socialmarket_outbox",
@@ -45,6 +65,16 @@ class SchedulerV2Tests(unittest.TestCase):
         scheduler.reconcile_and_fill(scheduler.expand(), [])
         self.assertTrue(any(a["type"] == "skip_late" and a["campaign"] == "expired" for a in scheduler.actions))
         self.assertFalse(any(a["type"] == "would_schedule" for a in scheduler.actions))
+
+    def test_run_reports_post_write_full_truth(self):
+        scheduler = SocialScheduler(FakeRuntimeClient(), SETTINGS, CHANNELS, backlog_item("fill-slot", text="new unique post"), mode="dry-run")
+        result = scheduler.run()
+        self.assertEqual(result["initial_active_by_service"]["facebook"], 9)
+        self.assertEqual(result["scheduled_by_service"]["facebook"], 1)
+        self.assertEqual(result["active_by_service"]["facebook"], 10)
+        self.assertTrue(result["channel_queue_slo"]["facebook"]["met"])
+        self.assertTrue(result["queue_slo"]["met"])
+        self.assertEqual(result["full_truth_source"], "single_runtime_snapshot_plus_buffer_create_ack")
 
 
 if __name__ == "__main__":
