@@ -46,7 +46,7 @@ class BufferClient:
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
-                    "User-Agent": "socialscheduler/1.0",
+                    "User-Agent": "socialscheduler/3.0",
                 },
                 method="POST",
             )
@@ -81,9 +81,7 @@ class BufferClient:
 
     def account(self) -> dict[str, Any]:
         query = """
-        query Account {
-          account { id email organizations { id name } }
-        }
+        query Account { account { id email organizations { id name } } }
         """
         return self.execute(query)["account"]
 
@@ -94,6 +92,45 @@ class BufferClient:
         }
         """
         return self.execute(query, {"input": {"organizationId": organization_id}})["channels"]
+
+    def runtime_snapshot(self, organization_id: str) -> dict[str, Any]:
+        """One Buffer request for org access, connected channels and active queue.
+
+        Active queues are capped at 10 per channel on the current Free plan, so a
+        single 100-node page safely covers our three connected channels.
+        """
+        query = """
+        query RuntimeSnapshot($channelsInput: ChannelsInput!, $postsInput: PostsInput!, $first: Int) {
+          account { id organizations { id name } }
+          channels(input: $channelsInput) { id name service }
+          posts(input: $postsInput, first: $first) {
+            edges {
+              node {
+                id text channelId channelService status dueAt sentAt createdAt updatedAt
+                shareMode schedulingType ideaId externalLink
+                assets { id mimeType source thumbnail }
+              }
+            }
+            pageInfo { endCursor hasNextPage }
+          }
+        }
+        """
+        variables = {
+            "channelsInput": {"organizationId": organization_id},
+            "postsInput": {
+                "organizationId": organization_id,
+                "filter": {"status": ["scheduled", "sending"]},
+                "sort": [{"field": "dueAt", "direction": "asc"}],
+            },
+            "first": 100,
+        }
+        data = self.execute(query, variables)
+        return {
+            "account": data.get("account") or {},
+            "channels": data.get("channels") or [],
+            "posts": [edge.get("node") or {} for edge in (data.get("posts") or {}).get("edges", [])],
+            "has_next_page": bool((data.get("posts") or {}).get("pageInfo", {}).get("hasNextPage")),
+        }
 
     def _paginate(self, query: str, root: str, variables: dict[str, Any], page_size: int = 100) -> list[dict[str, Any]]:
         nodes: list[dict[str, Any]] = []
@@ -116,7 +153,7 @@ class BufferClient:
           posts(input: $input, first: $first, after: $after) {
             edges {
               node {
-                id text channelId status dueAt sentAt createdAt updatedAt shareMode schedulingType ideaId
+                id text channelId channelService status dueAt sentAt createdAt updatedAt shareMode schedulingType ideaId externalLink
                 assets { id mimeType source thumbnail }
               }
             }
@@ -131,16 +168,42 @@ class BufferClient:
         }
         return self._paginate(query, "posts", {"input": input_data})
 
+    def sent_posts_with_metrics(self, organization_id: str, *, page_size: int = 100, max_pages: int = 5) -> list[dict[str, Any]]:
+        query = """
+        query SentPostsMetrics($input: PostsInput!, $first: Int, $after: String) {
+          posts(input: $input, first: $first, after: $after) {
+            edges {
+              node {
+                id text channelId channelService status dueAt sentAt externalLink
+                metrics { type name value unit }
+                metricsUpdatedAt
+              }
+            }
+            pageInfo { endCursor hasNextPage }
+          }
+        }
+        """
+        input_data = {
+            "organizationId": organization_id,
+            "filter": {"status": ["sent"]},
+            "sort": [{"field": "dueAt", "direction": "desc"}],
+        }
+        nodes: list[dict[str, Any]] = []
+        after = None
+        for _ in range(max(1, max_pages)):
+            result = self.execute(query, {"input": input_data, "first": page_size, "after": after})["posts"]
+            nodes.extend(edge.get("node") or {} for edge in result.get("edges", []))
+            info = result.get("pageInfo", {})
+            if not info.get("hasNextPage") or not info.get("endCursor"):
+                break
+            after = info.get("endCursor")
+        return nodes
+
     def ideas(self, organization_id: str) -> list[dict[str, Any]]:
         query = """
         query Ideas($input: IdeasInput!, $first: Int, $after: String) {
           ideas(input: $input, first: $first, after: $after) {
-            edges {
-              node {
-                id organizationId createdAt updatedAt
-                content { title text date services media { url type } }
-              }
-            }
+            edges { node { id organizationId createdAt updatedAt content { title text date services media { url type } } } }
             pageInfo { endCursor hasNextPage }
           }
         }
@@ -176,3 +239,17 @@ class BufferClient:
         if result.get("message"):
             raise BufferAPIError(f"createPost failed: {result['message']}")
         return result["post"]
+
+    def delete_post(self, post_id: str) -> str:
+        query = """
+        mutation DeletePost($input: DeletePostInput!) {
+          deletePost(input: $input) {
+            ... on DeletePostSuccess { id }
+            ... on MutationError { message }
+          }
+        }
+        """
+        result = self.execute(query, {"input": {"id": post_id}})["deletePost"]
+        if result.get("message"):
+            raise BufferAPIError(f"deletePost failed: {result['message']}")
+        return str(result.get("id") or post_id)
