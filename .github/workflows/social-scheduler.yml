@@ -41,7 +41,7 @@ jobs:
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
-      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'dry-run' }}
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
       CONTENT_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.content_source || 'socialmarket_outbox' }}
       SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
