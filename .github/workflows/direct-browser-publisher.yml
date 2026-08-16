@@ -1,0 +1,105 @@
+name: Direct Browser Publisher Prototype
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: login or dry-run
+        required: true
+        default: login
+        type: choice
+        options:
+          - login
+          - dry-run
+      platform:
+        description: Target social UI
+        required: true
+        default: meta
+        type: choice
+        options:
+          - meta
+          - tiktok
+          - linkedin
+      caption:
+        description: Dry-run caption
+        required: false
+        default: "SocialMarket browser dry-run — DO NOT PUBLISH"
+      tracking_url:
+        description: Optional exact tracking URL
+        required: false
+      scheduled_at:
+        description: Optional Europe/Athens requested time, e.g. 2026-08-17T10:00:00+03:00
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  browser-prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+      BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
+      META_CONTEXT_ID: ${{ secrets.BROWSERBASE_CONTEXT_META }}
+      TIKTOK_CONTEXT_ID: ${{ secrets.BROWSERBASE_CONTEXT_TIKTOK }}
+      LINKEDIN_CONTEXT_ID: ${{ secrets.BROWSERBASE_CONTEXT_LINKEDIN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install remote-browser dependencies
+        run: pip install browserbase playwright
+
+      - name: Require Browserbase credentials
+        run: |
+          test -n "$BROWSERBASE_API_KEY" || (echo 'Missing BROWSERBASE_API_KEY secret' && exit 1)
+          test -n "$BROWSERBASE_PROJECT_ID" || (echo 'Missing BROWSERBASE_PROJECT_ID secret' && exit 1)
+
+      - name: Start manual login session
+        if: inputs.action == 'login'
+        run: |
+          case "${{ inputs.platform }}" in
+            meta) CID="$META_CONTEXT_ID" ;;
+            tiktok) CID="$TIKTOK_CONTEXT_ID" ;;
+            linkedin) CID="$LINKEDIN_CONTEXT_ID" ;;
+          esac
+          if [ -n "$CID" ]; then
+            python -m scripts.browser_login "${{ inputs.platform }}" --context-id "$CID"
+          else
+            python -m scripts.browser_login "${{ inputs.platform }}"
+          fi
+
+      - name: Resolve persistent context for dry-run
+        if: inputs.action == 'dry-run'
+        id: ctx
+        shell: bash
+        run: |
+          case "${{ inputs.platform }}" in
+            meta) CID="$META_CONTEXT_ID" ;;
+            tiktok) CID="$TIKTOK_CONTEXT_ID" ;;
+            linkedin) CID="$LINKEDIN_CONTEXT_ID" ;;
+          esac
+          test -n "$CID" || (echo 'Missing persistent context secret. Run login first.' && exit 1)
+          echo "context_id=$CID" >> "$GITHUB_OUTPUT"
+
+      - name: Browser dry-run — final publish action forbidden
+        if: inputs.action == 'dry-run'
+        run: |
+          python -m scripts.browser_dry_run "${{ inputs.platform }}" \
+            --context-id "${{ steps.ctx.outputs.context_id }}" \
+            --caption "${{ inputs.caption }}" \
+            ${{ inputs.tracking_url && format('--tracking-url "{0}"', inputs.tracking_url) || '' }} \
+            ${{ inputs.scheduled_at && format('--scheduled-at "{0}"', inputs.scheduled_at) || '' }}
+
+      - name: Upload browser screenshots
+        if: always() && inputs.action == 'dry-run'
+        uses: actions/upload-artifact@v4
+        with:
+          name: direct-browser-${{ inputs.platform }}-dry-run
+          path: artifacts/browser/*.png
+          if-no-files-found: ignore
+          retention-days: 7
