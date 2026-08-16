@@ -3,12 +3,25 @@
   "organization_name": "My Organization",
   "timezone": "Europe/Athens",
   "queue_limit": 10,
+  "queue_limit_per_channel": 10,
   "idea_limit": 100,
-  "future_horizon_days": 120,
-  "dedupe_sent_days": 180,
-  "max_creates_per_run": 10,
-  "late_item_policy": "defer",
-  "late_item_defer_days": 3,
+  "future_horizon_days": 7,
+  "outbox_horizon_hours": 72,
+  "weekly_target": 300,
+  "channel_weekly": {
+    "facebook": 120,
+    "instagram": 100,
+    "tiktok": 80
+  },
+  "source_mix": {
+    "socialmarket_products": 0.90,
+    "chatgpt_sites": 0.10
+  },
+  "max_creates_per_run": 30,
+  "buffer_api_soft_limit_30d": 2400,
+  "analytics_frequency": "weekly",
+  "late_item_policy": "skip",
+  "late_item_defer_days": 0,
   "asset_repo": "vmoulakakis/socialscheduler",
   "asset_ref": "main",
   "protected_rules": {
@@ -16,6 +29,8 @@
     "never_share_next": true,
     "never_move_future_due_at_earlier": true,
     "never_duplicate_sent_or_scheduled": true,
+    "queue_limit_is_per_channel": true,
+    "archive_then_delete_outbox_after_buffer_accept": true,
     "queue_correctness_over_fullness": true
   }
 }
