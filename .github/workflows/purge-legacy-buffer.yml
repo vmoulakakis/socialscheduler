@@ -1,0 +1,34 @@
+name: Purge Legacy Buffer Scheduled Posts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/trigger-purge-legacy"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: purge-legacy-buffer
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
+      PURGE_START: "2026-08-17T21:00:00+00:00"
+      PURGE_END: "2026-11-30T22:00:00+00:00"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Purge only legacy Idea-backed scheduled posts
+        run: python -m scripts.purge_legacy_scheduled
