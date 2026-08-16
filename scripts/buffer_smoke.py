@@ -10,6 +10,7 @@ from src.buffer_client import BufferAPIError, BufferClient, BufferRateLimitError
 ORG_ID = os.getenv("BUFFER_ORGANIZATION_ID", "68a86463018d512de98d6315").strip()
 STATUSES = ["draft", "needs_approval", "scheduled", "sending", "sent", "error"]
 TRAVEL_AI_IDEA = "6a7f0383153244db8c91ef2a"
+PER_CHANNEL_LIMIT = 10
 
 
 def set_output(name: str, value: str) -> None:
@@ -33,8 +34,23 @@ def main() -> int:
 
     status_counts = Counter(post.get("status") for post in posts)
     active = [post for post in posts if post.get("status") in {"scheduled", "sending"}]
+    channel_queue = []
+    for channel in channels:
+        channel_id = channel.get("id")
+        channel_active = sum(1 for post in active if post.get("channelId") == channel_id)
+        channel_queue.append({
+            "id": channel_id,
+            "name": channel.get("name"),
+            "service": channel.get("service"),
+            "active_queue": channel_active,
+            "queue_limit": PER_CHANNEL_LIMIT,
+            "missing_slots": max(0, PER_CHANNEL_LIMIT - channel_active),
+            "fill_rate_pct": min(100.0, round(channel_active * 100.0 / PER_CHANNEL_LIMIT, 2)),
+        })
+
     travel_idea = next((idea for idea in ideas if idea.get("id") == TRAVEL_AI_IDEA), None)
     travel_posts = [post for post in posts if post.get("ideaId") == TRAVEL_AI_IDEA]
+    total_limit = PER_CHANNEL_LIMIT * len(channels)
 
     summary = {
         "ok": True,
@@ -45,10 +61,12 @@ def main() -> int:
             {"id": c.get("id"), "name": c.get("name"), "service": c.get("service")}
             for c in channels
         ],
+        "channel_queue": channel_queue,
         "post_count": len(posts),
         "status_counts": dict(status_counts),
         "active_queue": len(active),
-        "active_queue_limit": 10,
+        "active_queue_limit": total_limit,
+        "fill_rate_pct": min(100.0, round(len(active) * 100.0 / max(1, total_limit), 2)),
         "ideas_count": len(ideas),
         "travel_ai_sep12_idea_found": bool(travel_idea),
         "travel_ai_sep12_posts": [
