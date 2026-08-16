@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from .buffer_client import BufferAPIError, BufferClient, BufferRateLimitError
-from .scheduler import load_json
+from .scheduler import ACTIVE_QUEUE_STATUSES, STATUS_READ_SET, load_json
 from .scheduler_v2 import SocialScheduler
 from .socialmarket_outbox import SocialMarketOutboxClient, SocialMarketOutboxError, jobs_to_backlog
 
@@ -26,13 +26,36 @@ def main() -> int:
     if env_org:
         settings["organization_id"] = env_org
 
+    client = BufferClient.from_env()
     content_source = os.getenv("CONTENT_SOURCE", "socialmarket_outbox").strip() or "socialmarket_outbox"
     outbox: SocialMarketOutboxClient | None = None
     try:
         if content_source == "socialmarket_outbox":
             outbox = SocialMarketOutboxClient.from_env()
-            limit = int(settings.get("max_creates_per_run", settings.get("queue_limit", 10)))
-            jobs = outbox.peek(limit) if args.mode == "dry-run" else outbox.claim(limit)
+            requested_limit = int(settings.get("max_creates_per_run", settings.get("queue_limit", 10)))
+            if args.mode == "dry-run":
+                jobs = outbox.peek(requested_limit)
+            else:
+                try:
+                    current_posts = client.posts(settings["organization_id"], STATUS_READ_SET)
+                except BufferRateLimitError as exc:
+                    print(json.dumps({
+                        "ok": True,
+                        "status": "rate_limited",
+                        "retry_after_seconds": exc.retry_after_seconds,
+                        "action": "defer_without_outbox_claim",
+                    }, ensure_ascii=False, indent=2))
+                    return 0
+                except BufferAPIError as exc:
+                    print(json.dumps({"ok": False, "status": "error", "error": str(exc)}, ensure_ascii=False, indent=2))
+                    return 2
+
+                active_queue = sum(1 for post in current_posts if post.get("status") in ACTIVE_QUEUE_STATUSES)
+                free_slots = max(0, int(settings.get("queue_limit", 10)) - active_queue)
+                claim_limit = min(requested_limit, free_slots)
+                jobs = outbox.claim(claim_limit) if claim_limit > 0 else []
+                settings["preclaim_active_queue"] = active_queue
+                settings["preclaim_free_slots"] = free_slots
             backlog = jobs_to_backlog(jobs)
             settings["content_source"] = "socialmarket_outbox"
         elif content_source == "legacy_backlog":
@@ -44,7 +67,6 @@ def main() -> int:
         print(json.dumps({"ok": False, "status": "outbox_error", "error": str(exc)}, ensure_ascii=False, indent=2))
         return 3
 
-    client = BufferClient.from_env()
     scheduler = SocialScheduler(client=client,settings=settings,channels=load_json(args.channels),backlog=backlog,mode=args.mode)
     try:
         result = scheduler.run()
@@ -54,6 +76,10 @@ def main() -> int:
     except BufferAPIError as exc:
         print(json.dumps({"ok": False, "status": "error", "error": str(exc)}, ensure_ascii=False, indent=2))
         return 2
+
+    if "preclaim_active_queue" in settings:
+        result["preclaim_active_queue"] = settings["preclaim_active_queue"]
+        result["preclaim_free_slots"] = settings["preclaim_free_slots"]
 
     buffer_posts = result.pop("buffer_posts", [])
     if outbox:
