@@ -69,7 +69,10 @@ def main() -> int:
     )
 
     channel_truth_met = bool(channel_slo) and all(bool(item.get("met")) for item in channel_slo.values())
-    overall = "HEALTHY" if channel_truth_met and buffer_errors == 0 and scheduler.get("ok", True) else "CRITICAL"
+    scheduler_completed = scheduler.get("ok") is True and scheduler.get("status") == "completed"
+    if not scheduler_completed and reason == "none":
+        reason = "scheduler_execution_missing_or_failed"
+    overall = "HEALTHY" if channel_truth_met and buffer_errors == 0 and scheduler_completed else "CRITICAL"
     generated_at = datetime.now(TZ).isoformat(timespec="seconds")
     dashboard = {
         "generated_at": generated_at,
@@ -77,6 +80,7 @@ def main() -> int:
         "hard_slo": "BUFFER_FILL_RATE_100_PERCENT_PER_CHANNEL",
         "queue_slo": slo,
         "channel_queue_slo": channel_slo,
+        "scheduler_completed": scheduler_completed,
         "incident_reason": reason,
         "buffer": {
             "organization": scheduler.get("organization") or (preflight.get("organization") or {}).get("id"),
@@ -108,6 +112,7 @@ def main() -> int:
         "next_scheduled": scheduler.get("next_scheduled") or [],
         "truth_notes": [
             "Healthy requires 100% fill on every connected Buffer channel, not just total queue count.",
+            "Workflow success alone is never treated as system health; scheduler execution must complete truthfully.",
             "SocialScheduler schedules only SocialMarket-approved jobs; it never fabricates filler content.",
             "Before claiming, SocialMarket runs a rolling refill so seasonal and pain-solver content can enter the 72-hour window.",
         ],
@@ -120,6 +125,7 @@ def main() -> int:
 
 **Updated:** {generated_at}  
 **Overall:** **{overall}**  
+**Scheduler completed:** **{scheduler_completed}**  
 **Hard SLO:** Buffer fill = **100% on every connected channel**
 
 ## Buffer Truth
@@ -158,7 +164,7 @@ def main() -> int:
 
 **{reason}**
 
-- **GREEN only when:** Facebook 10/10, Instagram 10/10, TikTok 10/10 and Buffer errors = 0.
+- **GREEN only when:** Facebook 10/10, Instagram 10/10, TikTok 10/10, Buffer errors = 0, scheduler completed.
 - Underfill is never hidden by workflow success.
 - If SocialMarket has insufficient approved content for a channel, the dashboard stays **CRITICAL** until supply/refill is fixed.
 
@@ -180,7 +186,7 @@ def main() -> int:
     page = f"""<!doctype html><html><head><meta charset='utf-8'><title>SocialScheduler Admin</title>
 <style>body{{font-family:system-ui;margin:36px;max-width:980px}}.ok{{color:#067647}}.bad{{color:#b42318}}table{{border-collapse:collapse;width:100%}}td,th{{border-bottom:1px solid #ddd;padding:10px;text-align:left}}td:nth-child(n+2){{font-weight:700}}code{{white-space:pre-wrap}}</style></head><body>
 <h1>SocialScheduler Admin Dashboard</h1><h2 class='{'ok' if overall == 'HEALTHY' else 'bad'}'>{icon} {esc(overall)}</h2>
-<p>Updated {esc(generated_at)} · Hard SLO: 100% per channel</p>
+<p>Updated {esc(generated_at)} · Hard SLO: 100% per channel · Scheduler completed: {esc(scheduler_completed)}</p>
 <table><thead><tr><th>Channel</th><th>Queue</th><th>Fill</th><th>Status</th></tr></thead><tbody>{channel_rows}</tbody></table>
 <h3>Full truth</h3><code>{esc(json.dumps(dashboard, ensure_ascii=False, indent=2))}</code></body></html>"""
     (ARTIFACT_DIR / "admin-dashboard.html").write_text(page, encoding="utf-8")
