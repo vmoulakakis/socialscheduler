@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from src.scheduler_v2 import SocialScheduler
 
@@ -11,8 +12,9 @@ SETTINGS = {
     "organization_id": "org",
     "timezone": "Europe/Athens",
     "queue_limit": 10,
+    "queue_limit_per_channel": 10,
     "idea_limit": 100,
-    "max_creates_per_run": 10,
+    "max_creates_per_run": 30,
     "late_item_policy": "defer",
     "late_item_defer_days": 3,
     "content_source": "socialmarket_outbox",
@@ -45,6 +47,28 @@ class SchedulerV2Tests(unittest.TestCase):
         scheduler.reconcile_and_fill(scheduler.expand(), [])
         self.assertTrue(any(a["type"] == "skip_late" and a["campaign"] == "expired" for a in scheduler.actions))
         self.assertFalse(any(a["type"] == "would_schedule" for a in scheduler.actions))
+
+    def test_full_facebook_does_not_consume_instagram_capacity(self):
+        channels = {"facebook": {"id": "fb"}, "instagram": {"id": "ig"}}
+        backlog = [{
+            "id": "ig-job",
+            "brand": "Brand",
+            "topic": "IG topic",
+            "target_at": "2099-01-01T10:00:00+02:00",
+            "services": ["instagram"],
+            "platform_text": {"instagram": "IG execution"},
+            "format": {"instagram": "post"},
+            "media_url": "https://example.invalid/image.jpg",
+        }]
+        posts = [
+            {"id": f"fb-{i}", "status": "scheduled", "channelId": "fb", "text": f"FB {i}", "ideaId": None}
+            for i in range(10)
+        ]
+        scheduler = SocialScheduler(FakeClient(), SETTINGS, channels, backlog, mode="dry-run")
+        with patch.object(SocialScheduler, "_url_works", return_value=True):
+            scheduler.reconcile_and_fill(scheduler.expand(), posts)
+        self.assertTrue(any(a["type"] == "queue_full" and a.get("service") == "facebook" for a in scheduler.actions))
+        self.assertTrue(any(a["type"] == "would_schedule" and a.get("service") == "instagram" for a in scheduler.actions))
 
 
 if __name__ == "__main__":
