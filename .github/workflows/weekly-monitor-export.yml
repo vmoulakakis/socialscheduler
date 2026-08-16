@@ -1,0 +1,51 @@
+name: Weekly Monitoring Export
+
+on:
+  workflow_dispatch:
+    inputs:
+      week_start:
+        description: "Athens Monday YYYY-MM-DD (blank = last completed week)"
+        required: false
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - ".github/trigger-weekly-monitor"
+
+concurrency:
+  group: weekly-monitor-export
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
+      REPORT_WEEK_START: ${{ github.event_name == 'workflow_dispatch' && inputs.week_start || '' }}
+      MONITOR_EXPORT_PATH: artifacts/buffer-week.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require Buffer API secret
+        shell: bash
+        run: |
+          if [ -z "$BUFFER_API_KEY" ]; then
+            echo "BUFFER_API_KEY GitHub Actions secret is missing."
+            exit 1
+          fi
+      - name: Export Buffer weekly truth
+        run: python -m scripts.weekly_monitor_export
+      - name: Upload weekly monitoring data
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialscheduler-weekly-monitor-${{ github.run_number }}
+          path: artifacts/buffer-week.json
+          if-no-files-found: error
+          retention-days: 30
