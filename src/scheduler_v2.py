@@ -27,13 +27,16 @@ class SocialScheduler(BaseSocialScheduler):
             data["source"] = f"socialmarket:{ex.campaign_id}:{ex.service}"
         return data
 
+    @staticmethod
+    def _consumed_rank(post: dict[str, Any]) -> int:
+        return {"sent": 4, "sending": 3, "scheduled": 2, "error": 1}.get(str(post.get("status")), 0)
+
     def reconcile_and_fill(self, executions: list[Execution], posts: list[dict[str, Any]]) -> None:
         if self.settings.get("content_source") != "socialmarket_outbox":
             super().reconcile_and_fill(executions, posts)
             return
 
         now = self.now()
-        consumed = {self._post_key(p) for p in posts if p.get("status") in core.CONSUMED_STATUSES}
         active = [p for p in posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES]
         active_by_channel = Counter(str(p.get("channelId") or "") for p in active)
         per_channel_limit = int(self.settings.get("queue_limit_per_channel", self.settings.get("queue_limit", 10)))
@@ -41,6 +44,23 @@ class SocialScheduler(BaseSocialScheduler):
             meta["id"]: max(0, per_channel_limit - int(active_by_channel.get(meta["id"], 0)))
             for meta in self.channels.values()
         }
+
+        consumed_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+        for post in posts:
+            if post.get("status") not in core.CONSUMED_STATUSES:
+                continue
+            key = self._post_key(post)
+            existing = consumed_by_key.get(key)
+            if existing is None or self._consumed_rank(post) > self._consumed_rank(existing):
+                consumed_by_key[key] = post
+            if post.get("status") == "error":
+                self.actions.append({
+                    "type": "existing_error_blocked",
+                    "postId": post.get("id"),
+                    "channelId": post.get("channelId"),
+                    "ideaId": post.get("ideaId"),
+                    "reason": "manual_or_classified_recovery_required_before_retry",
+                })
 
         candidates: list[Execution] = []
         for ex in executions:
@@ -50,8 +70,22 @@ class SocialScheduler(BaseSocialScheduler):
             if ex.requires_verification:
                 self.actions.append({"type": "blocked", "campaign": ex.campaign_id, "service": ex.service, "reason": "fresh_verification_required"})
                 continue
-            if self._execution_key(ex) in consumed:
-                self.actions.append({"type": "duplicate_blocked", "campaign": ex.campaign_id, "service": ex.service, "reason": "matching_buffer_post_exists"})
+            existing = consumed_by_key.get(self._execution_key(ex))
+            if existing:
+                common = {
+                    "campaign": ex.campaign_id,
+                    "service": ex.service,
+                    "postId": existing.get("id"),
+                    "dueAt": existing.get("dueAt"),
+                    "sentAt": existing.get("sentAt"),
+                }
+                status = existing.get("status")
+                if status == "sent":
+                    self.actions.append({"type": "already_published", **common})
+                elif status == "error":
+                    self.actions.append({"type": "already_error", **common, "reason": "buffer_status_error"})
+                else:
+                    self.actions.append({"type": "already_scheduled", **common})
                 continue
             target = self._future_target(ex, now)
             if not target:
