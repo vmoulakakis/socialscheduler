@@ -1,2 +1,2 @@
-trigger: 2026-08-16T03:54:00+03:00
-reason: validate SocialMarket outbox to Buffer dry-run before enabling live executor
+trigger: 2026-08-16T04:08:00+03:00
+reason: schedule approved SocialMarket pain-solver campaign live after successful V2 dry-run and legacy cleanup
