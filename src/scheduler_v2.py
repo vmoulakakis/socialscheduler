@@ -13,7 +13,7 @@ core.CONSUMED_STATUSES = {"scheduled", "sending", "sent", "error"}
 
 
 class SocialScheduler(BaseSocialScheduler):
-    """Production Buffer executor with conservative error handling and explicit fill SLO truth."""
+    """Production Buffer executor with per-channel capacity and explicit full-truth SLO reporting."""
 
     def _future_target(self, ex: Execution, now: datetime) -> datetime | None:
         if self.settings.get("content_source") == "socialmarket_outbox":
@@ -29,6 +29,15 @@ class SocialScheduler(BaseSocialScheduler):
     @staticmethod
     def _consumed_rank(post: dict[str, Any]) -> int:
         return {"sent": 4, "sending": 3, "scheduled": 2, "error": 1}.get(str(post.get("status")), 0)
+
+    def _active_by_service(self, posts: list[dict[str, Any]]) -> dict[str, int]:
+        return {
+            service: sum(
+                1 for post in posts
+                if post.get("status") in core.ACTIVE_QUEUE_STATUSES and post.get("channelId") == meta["id"]
+            )
+            for service, meta in self.channels.items()
+        }
 
     def reconcile_and_fill(self, executions: list[Execution], posts: list[dict[str, Any]]) -> None:
         for post in posts:
@@ -75,7 +84,27 @@ class SocialScheduler(BaseSocialScheduler):
             else:
                 self.actions.append({"type": "already_scheduled", **common})
 
-        super().reconcile_and_fill(remaining, posts)
+        # Buffer capacity is per connected channel, not global. Reuse the proven
+        # core reconciler independently for each channel so no platform can consume
+        # another platform's ten scheduled-post slots.
+        per_channel_limit = int(self.settings.get("queue_limit_per_channel", self.settings.get("queue_limit", 10)))
+        original_queue_limit = self.settings.get("queue_limit", 10)
+        original_max_creates = self.settings.get("max_creates_per_run", 10)
+        try:
+            self.settings["queue_limit"] = per_channel_limit
+            self.settings["max_creates_per_run"] = per_channel_limit
+            for service, meta in self.channels.items():
+                channel_id = meta["id"]
+                channel_posts = [post for post in posts if post.get("channelId") == channel_id]
+                channel_execs = [ex for ex in remaining if ex.service == service]
+                action_start = len(self.actions)
+                super().reconcile_and_fill(channel_execs, channel_posts)
+                for action in self.actions[action_start:]:
+                    action.setdefault("service", service)
+                    action.setdefault("channelId", channel_id)
+        finally:
+            self.settings["queue_limit"] = original_queue_limit
+            self.settings["max_creates_per_run"] = original_max_creates
 
     def run(self) -> dict[str, Any]:
         org_id = self.settings["organization_id"]
@@ -90,7 +119,7 @@ class SocialScheduler(BaseSocialScheduler):
             raise BufferAPIError(f"Configured Buffer channels are missing/disconnected: {missing}")
 
         posts = self.client.posts(org_id, core.STATUS_READ_SET)
-        initial_active = sum(1 for p in posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES)
+        initial_by_service = self._active_by_service(posts)
         executions = self.expand()
 
         if self.settings.get("content_source") == "socialmarket_outbox":
@@ -102,29 +131,42 @@ class SocialScheduler(BaseSocialScheduler):
 
         self.reconcile_and_fill(executions, posts)
         scheduled_created = sum(1 for action in self.actions if action.get("type") == "scheduled")
-        would_schedule = sum(1 for action in self.actions if action.get("type") == "would_schedule")
 
-        # Full truth: after live writes, re-read Buffer only when this run created posts.
-        # This avoids reporting the pre-write queue as if it were the final state.
+        # Re-read after writes so the dashboard/email reports Buffer truth after this run.
         final_posts = posts
         if self.mode == "live" and scheduled_created > 0:
             final_posts = self.client.posts(org_id, core.STATUS_READ_SET)
 
-        observed_active = sum(1 for p in final_posts if p.get("status") in core.ACTIVE_QUEUE_STATUSES)
-        effective_active = observed_active if self.mode == "live" else min(
-            int(self.settings["queue_limit"]), initial_active + would_schedule
-        )
-        slo = queue_slo(effective_active, int(self.settings["queue_limit"]))
+        observed_by_service = self._active_by_service(final_posts)
+        per_channel_limit = int(self.settings.get("queue_limit_per_channel", self.settings.get("queue_limit", 10)))
+        channel_slo: dict[str, dict[str, Any]] = {}
+        for service in self.channels:
+            if self.mode == "live":
+                effective = observed_by_service.get(service, 0)
+            else:
+                predicted = sum(
+                    1 for action in self.actions
+                    if action.get("type") == "would_schedule" and action.get("service") == service
+                )
+                effective = min(per_channel_limit, initial_by_service.get(service, 0) + predicted)
+            channel_slo[service] = queue_slo(effective, per_channel_limit)
+            if not channel_slo[service]["met"]:
+                self.actions.append({
+                    "type": "queue_underfilled",
+                    "severity": "CRITICAL",
+                    "service": service,
+                    "channelId": self.channels[service]["id"],
+                    "active": channel_slo[service]["active_queue"],
+                    "limit": per_channel_limit,
+                    "missing_slots": channel_slo[service]["missing_slots"],
+                    "reason": "approved_supply_or_execution_shortage",
+                })
 
-        if not slo["met"]:
-            self.actions.append({
-                "type": "queue_underfilled",
-                "severity": "CRITICAL",
-                "active": slo["active_queue"],
-                "limit": slo["queue_limit"],
-                "missing_slots": slo["missing_slots"],
-                "reason": "approved_supply_or_execution_shortage",
-            })
+        total_active = sum(item["active_queue"] for item in channel_slo.values())
+        total_limit = per_channel_limit * len(channel_slo)
+        slo = queue_slo(total_active, total_limit)
+        slo["met"] = all(item["met"] for item in channel_slo.values())
+        slo["severity"] = "OK" if slo["met"] else "CRITICAL"
 
         status_counts = Counter(str(p.get("status") or "unknown") for p in final_posts)
         channel_service = {meta["id"]: service for service, meta in self.channels.items()}
@@ -151,13 +193,16 @@ class SocialScheduler(BaseSocialScheduler):
             "ideas_seen": len(ideas),
             "active_queue": slo["active_queue"],
             "queue_limit": slo["queue_limit"],
+            "queue_limit_per_channel": per_channel_limit,
             "queue_slo": slo,
-            "initial_active_queue": initial_active,
+            "channel_queue_slo": channel_slo,
+            "initial_active_queue": sum(initial_by_service.values()),
+            "initial_active_by_service": initial_by_service,
             "scheduled_created": scheduled_created,
             "post_write_status_counts": dict(status_counts),
             "next_scheduled": next_scheduled,
             "buffer_posts": [
-                {"id": p.get("id"), "status": p.get("status"), "dueAt": p.get("dueAt"), "sentAt": p.get("sentAt")}
+                {"id": p.get("id"), "status": p.get("status"), "channelId": p.get("channelId"), "dueAt": p.get("dueAt"), "sentAt": p.get("sentAt")}
                 for p in final_posts if p.get("id")
             ],
             "actions": self.actions,
