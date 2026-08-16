@@ -166,23 +166,33 @@ class SocialMarketOutboxClient:
         return dict(self._post({"action": "optimize_week", "week_start": week_start}).get("result") or {})
 
     def sync_scheduler_actions(self, actions: list[dict[str, Any]]) -> dict[str, int]:
-        """Archive successful Buffer schedules immediately; keep only failures in outbox."""
-        counts = {"scheduled_archived": 0, "failed": 0}
+        """Archive successful Buffer schedules immediately while retaining old diagnostics."""
+        counts = {"scheduled": 0, "scheduled_archived": 0, "published": 0, "failed": 0}
         for action in actions:
             job_id = str(action.get("campaign") or "").strip()
             if not job_id:
                 continue
             action_type = action.get("type")
-            platform_meta = {"platform": action.get("service"), "scheduler_version": "v3"}
-            if action_type == "scheduled":
+            platform_meta = {"platform": action.get("service")}
+            if action_type in {"scheduled", "already_scheduled"}:
                 self.ack(
                     job_id,
                     "scheduled",
                     external_post_id=action.get("postId"),
                     scheduled_at=action.get("dueAt"),
-                    metadata=platform_meta | {"archive_after_schedule": True},
+                    metadata=platform_meta | {"reconciled_existing": action_type == "already_scheduled"},
                 )
+                counts["scheduled"] += 1
                 counts["scheduled_archived"] += 1
+            elif action_type == "already_published":
+                self.ack(
+                    job_id,
+                    "published",
+                    external_post_id=action.get("postId"),
+                    published_at=action.get("sentAt"),
+                    metadata=platform_meta | {"reconciled_existing": True},
+                )
+                counts["published"] += 1
             elif action_type in {"already_error", "skip_late"}:
                 reason = action.get("reason") or ("scheduled_time_elapsed" if action_type == "skip_late" else "buffer_status_error")
                 self.ack(job_id, "failed", external_post_id=action.get("postId"), error=reason, metadata=platform_meta)
