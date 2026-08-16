@@ -1,2 +1,2 @@
-trigger: 2026-08-17T01:01:00+03:00
-reason: validate Buffer recovery after truth and resilience repair
+trigger: 2026-08-17T01:08:00+03:00
+reason: refresh verified Buffer queue while SocialMarket quality gate is repairing
