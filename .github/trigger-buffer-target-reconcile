@@ -1,0 +1,2 @@
+requested_at: 2026-08-17T01:12:00+03:00
+reason: reconcile stale pain-solver Buffer IDs before any requeue
