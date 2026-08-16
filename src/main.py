@@ -25,12 +25,8 @@ def main() -> int:
     env_org = os.getenv("BUFFER_ORGANIZATION_ID", "").strip()
     if env_org:
         settings["organization_id"] = env_org
-    if os.getenv("ASSET_REPOSITORY"):
-        settings["asset_repo"] = os.environ["ASSET_REPOSITORY"]
-    if os.getenv("ASSET_REF"):
-        settings["asset_ref"] = os.environ["ASSET_REF"]
 
-    content_source = os.getenv("CONTENT_SOURCE", "legacy_backlog").strip() or "legacy_backlog"
+    content_source = os.getenv("CONTENT_SOURCE", "socialmarket_outbox").strip() or "socialmarket_outbox"
     outbox: SocialMarketOutboxClient | None = None
     try:
         if content_source == "socialmarket_outbox":
@@ -49,22 +45,11 @@ def main() -> int:
         return 3
 
     client = BufferClient.from_env()
-    scheduler = SocialScheduler(
-        client=client,
-        settings=settings,
-        channels=load_json(args.channels),
-        backlog=backlog,
-        mode=args.mode,
-    )
+    scheduler = SocialScheduler(client=client,settings=settings,channels=load_json(args.channels),backlog=backlog,mode=args.mode)
     try:
         result = scheduler.run()
     except BufferRateLimitError as exc:
-        print(json.dumps({
-            "ok": True,
-            "status": "rate_limited",
-            "retry_after_seconds": exc.retry_after_seconds,
-            "action": "defer_without_writes",
-        }, ensure_ascii=False, indent=2))
+        print(json.dumps({"ok": True,"status": "rate_limited","retry_after_seconds": exc.retry_after_seconds,"action": "defer_without_writes"}, ensure_ascii=False, indent=2))
         return 0
     except BufferAPIError as exc:
         print(json.dumps({"ok": False, "status": "error", "error": str(exc)}, ensure_ascii=False, indent=2))
