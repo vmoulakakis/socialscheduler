@@ -1,2 +1,2 @@
-trigger: 2026-08-16T17:52:00+03:00
-reason: validate Full Truth dashboard, per-channel Buffer fill and SocialMarket refill after PR7
+trigger: 2026-08-16T18:05:00+03:00
+reason: rerun Full Truth production validation after enabling SocialScheduler V3 executor
