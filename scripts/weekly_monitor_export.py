@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from collections import Counter
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, time as dt_time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from src.buffer_client import BufferClient
+from src.buffer_client import BufferAPIError, BufferClient
 
 ATHENS = ZoneInfo("Europe/Athens")
 ORG_ID = os.getenv("BUFFER_ORGANIZATION_ID", "68a86463018d512de98d6315").strip()
 OUT = Path(os.getenv("MONITOR_EXPORT_PATH", "artifacts/buffer-week.json"))
+TRANSIENT_MARKERS = ("Buffer HTTP 502", "Buffer HTTP 503", "Buffer HTTP 504", "network/timeout")
 
 
 def parse_dt(value):
@@ -34,9 +36,22 @@ def completed_week_window():
         this_monday = now_local.date() - timedelta(days=now_local.weekday())
         start_date = this_monday - timedelta(days=7)
     end_date = start_date + timedelta(days=7)
-    start_local = datetime.combine(start_date, time.min, tzinfo=ATHENS)
-    end_local = datetime.combine(end_date, time.min, tzinfo=ATHENS)
+    start_local = datetime.combine(start_date, dt_time.min, tzinfo=ATHENS)
+    end_local = datetime.combine(end_date, dt_time.min, tzinfo=ATHENS)
     return start_local, end_local
+
+
+def buffer_read(label, fn, attempts=4):
+    last = None
+    for attempt in range(attempts):
+        try:
+            return fn()
+        except BufferAPIError as exc:
+            last = exc
+            if not any(marker in str(exc) for marker in TRANSIENT_MARKERS) or attempt == attempts - 1:
+                raise
+            time.sleep(2 * (attempt + 1))
+    raise last or RuntimeError(f"{label} failed")
 
 
 def main() -> int:
@@ -44,10 +59,10 @@ def main() -> int:
     start_utc, end_utc = start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
     client = BufferClient.from_env()
 
-    snapshot = client.runtime_snapshot(ORG_ID)
+    snapshot = buffer_read("runtime_snapshot", lambda: client.runtime_snapshot(ORG_ID))
     channel_map = {str(row.get("id")): str(row.get("service") or "unknown") for row in snapshot.get("channels", [])}
 
-    sent_all = client.sent_posts_with_metrics(ORG_ID, page_size=100, max_pages=12)
+    sent_all = buffer_read("sent_posts_with_metrics", lambda: client.sent_posts_with_metrics(ORG_ID, page_size=100, max_pages=5))
     sent = []
     for post in sent_all:
         event_time = post.get("sentAt") or post.get("dueAt")
@@ -79,7 +94,7 @@ def main() -> int:
             "source": "current_buffer_runtime_snapshot",
         })
 
-    errors_all = client.posts(ORG_ID, ["error"])
+    errors_all = buffer_read("error_posts", lambda: client.posts(ORG_ID, ["error"]))
     errors = []
     for post in errors_all:
         if not any(in_window(post.get(field), start_utc, end_utc) for field in ("dueAt", "createdAt", "updatedAt")):
@@ -123,6 +138,7 @@ def main() -> int:
             "sent_posts are read directly from Buffer with status=sent and filtered to the completed Athens week",
             "current_active_posts are read directly from the live Buffer scheduled/sending snapshot at export time",
             "errors are read directly from Buffer error posts and filtered to the weekly window",
+            "transient Buffer 502/503/504 and network timeouts are retried with bounded backoff",
         ],
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
