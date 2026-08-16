@@ -48,7 +48,7 @@ def jobs_to_backlog(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
 class SocialMarketOutboxClient:
     endpoint: str
     audience: str = "socialmarket-v2-publishing"
-    request_timeout_seconds: int = 20
+    request_timeout_seconds: int = 30
     token_provider: Callable[[], str] | None = None
 
     @classmethod
@@ -72,7 +72,7 @@ class SocialMarketOutboxClient:
         oidc_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), parsed.fragment))
         req = urllib.request.Request(
             oidc_url,
-            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/2.2"},
+            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/3.0"},
             method="GET",
         )
         try:
@@ -87,14 +87,14 @@ class SocialMarketOutboxClient:
 
     def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        for attempt in range(2):
+        for attempt in range(3):
             req = urllib.request.Request(
                 self.endpoint,
                 data=body,
                 headers={
                     "Authorization": f"Bearer {self._github_oidc_token()}",
                     "Content-Type": "application/json",
-                    "User-Agent": "socialscheduler/2.2",
+                    "User-Agent": "socialscheduler/3.0",
                 },
                 method="POST",
             )
@@ -107,20 +107,26 @@ class SocialMarketOutboxClient:
                     detail = exc.read().decode("utf-8", errors="replace")[:2000]
                 except Exception:
                     pass
-                transient_timeout = exc.code == 503 and "request timed out" in detail.lower()
-                if transient_timeout and attempt == 0:
-                    time.sleep(1)
+                transient = exc.code in {502, 503, 504} or "request timed out" in detail.lower()
+                if transient and attempt < 2:
+                    time.sleep(attempt + 1)
                     continue
                 raise SocialMarketOutboxError(f"SocialMarket outbox HTTP {exc.code}: {detail or exc.reason}") from exc
             except Exception as exc:
+                if attempt < 2:
+                    time.sleep(attempt + 1)
+                    continue
                 raise SocialMarketOutboxError(f"SocialMarket outbox request failed: {exc}") from exc
             if not result.get("ok"):
                 raise SocialMarketOutboxError(str(result.get("error") or "SocialMarket outbox returned an error"))
             return result
-        raise SocialMarketOutboxError("SocialMarket outbox request failed after retry")
+        raise SocialMarketOutboxError("SocialMarket outbox request failed after retries")
 
     def health(self) -> dict[str, Any]:
         return self._post({"action": "health"})
+
+    def refill(self, hours: int = 72) -> dict[str, Any]:
+        return dict(self._post({"action": "refill", "hours": hours}).get("refill") or {})
 
     def peek(self, limit: int = 10) -> list[dict[str, Any]]:
         return list(self._post({"action": "peek", "limit": limit}).get("jobs") or [])
@@ -130,6 +136,15 @@ class SocialMarketOutboxClient:
             "action": "claim",
             "executor": "socialscheduler",
             "limit": limit,
+            "lease_minutes": lease_minutes,
+        }).get("jobs") or [])
+
+    def claim_capacity(self, capacity: dict[str, int], lease_minutes: int = 30) -> list[dict[str, Any]]:
+        safe = {name: max(0, min(10, int(capacity.get(name, 0)))) for name in ("facebook", "instagram", "tiktok")}
+        return list(self._post({
+            "action": "claim_capacity",
+            "executor": "socialscheduler",
+            "capacity": safe,
             "lease_minutes": lease_minutes,
         }).get("jobs") or [])
 
@@ -144,27 +159,30 @@ class SocialMarketOutboxClient:
             "error": error, "metadata": metadata or {},
         })
 
-    def reconcile_jobs(self, limit: int = 200) -> list[dict[str, Any]]:
-        return list(self._post({"action": "reconcile", "limit": limit}).get("jobs") or [])
+    def metrics_batch(self, rows: list[dict[str, Any]]) -> dict[str, Any]:
+        return dict(self._post({"action": "metrics_batch", "rows": rows}).get("result") or {})
+
+    def optimize_week(self, week_start: str) -> dict[str, Any]:
+        return dict(self._post({"action": "optimize_week", "week_start": week_start}).get("result") or {})
 
     def sync_scheduler_actions(self, actions: list[dict[str, Any]]) -> dict[str, int]:
-        counts = {"scheduled": 0, "published": 0, "failed": 0}
+        """Archive successful Buffer schedules immediately; keep only failures in outbox."""
+        counts = {"scheduled_archived": 0, "failed": 0}
         for action in actions:
             job_id = str(action.get("campaign") or "").strip()
             if not job_id:
                 continue
             action_type = action.get("type")
-            platform_meta = {"platform": action.get("service")}
-            if action_type in {"scheduled", "already_scheduled"}:
-                self.ack(job_id, "scheduled", external_post_id=action.get("postId"),
-                         scheduled_at=action.get("dueAt"),
-                         metadata=platform_meta | {"reconciled_existing": action_type == "already_scheduled"})
-                counts["scheduled"] += 1
-            elif action_type == "already_published":
-                self.ack(job_id, "published", external_post_id=action.get("postId"),
-                         published_at=action.get("sentAt"),
-                         metadata=platform_meta | {"reconciled_existing": True})
-                counts["published"] += 1
+            platform_meta = {"platform": action.get("service"), "scheduler_version": "v3"}
+            if action_type == "scheduled":
+                self.ack(
+                    job_id,
+                    "scheduled",
+                    external_post_id=action.get("postId"),
+                    scheduled_at=action.get("dueAt"),
+                    metadata=platform_meta | {"archive_after_schedule": True},
+                )
+                counts["scheduled_archived"] += 1
             elif action_type in {"already_error", "skip_late"}:
                 reason = action.get("reason") or ("scheduled_time_elapsed" if action_type == "skip_late" else "buffer_status_error")
                 self.ack(job_id, "failed", external_post_id=action.get("postId"), error=reason, metadata=platform_meta)
@@ -172,25 +190,4 @@ class SocialMarketOutboxClient:
             elif action_type == "blocked" and action.get("reason") in {"media_unavailable", "fresh_verification_required"}:
                 self.ack(job_id, "failed", error=action.get("reason"), metadata=platform_meta)
                 counts["failed"] += 1
-        return counts
-
-    def sync_buffer_statuses(self, tracked_jobs: list[dict[str, Any]], buffer_posts: list[dict[str, Any]]) -> dict[str, int]:
-        by_id = {str(post.get("id")): post for post in buffer_posts if post.get("id")}
-        counts = {"published": 0, "failed": 0, "scheduled": 0}
-        for job in tracked_jobs:
-            external_id = str(job.get("external_post_id") or "").strip()
-            if not external_id or external_id not in by_id:
-                continue
-            post = by_id[external_id]
-            status = post.get("status")
-            job_id = str(job.get("id"))
-            if status == "sent":
-                self.ack(job_id, "published", external_post_id=external_id, published_at=post.get("sentAt"))
-                counts["published"] += 1
-            elif status == "error":
-                self.ack(job_id, "failed", external_post_id=external_id, error="buffer_status_error")
-                counts["failed"] += 1
-            elif status in {"scheduled", "sending"} and job.get("status") != "scheduled":
-                self.ack(job_id, "scheduled", external_post_id=external_id, scheduled_at=post.get("dueAt"))
-                counts["scheduled"] += 1
         return counts
