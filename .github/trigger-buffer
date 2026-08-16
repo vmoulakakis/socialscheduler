@@ -1,2 +1,2 @@
-trigger: 2026-08-16T16:55:00+03:00
-reason: load ChatGPT Sites Facebook promo campaign into SocialMarket production outbox
+trigger: 2026-08-16T17:09:00+03:00
+reason: verify capacity-aware outbox claim at full Buffer queue
