@@ -9,10 +9,20 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 BUFFER_ENDPOINT = "https://api.buffer.com"
+TRANSIENT_HTTP_CODES = {500, 502, 503, 504}
+AUTH_ERROR_CODES = {401, 403}
 
 
 class BufferAPIError(RuntimeError):
     pass
+
+
+class BufferAuthError(BufferAPIError):
+    def __init__(self, status_code: int | None = None, detail: str = ""):
+        self.status_code = status_code
+        prefix = f"Buffer HTTP {status_code}" if status_code is not None else "Buffer authentication"
+        suffix = f": {detail[:500]}" if detail else ""
+        super().__init__(f"{prefix} authentication failed{suffix}")
 
 
 class BufferRateLimitError(BufferAPIError):
@@ -26,27 +36,50 @@ class BufferRateLimitError(BufferAPIError):
 class BufferClient:
     api_key: str
     endpoint: str = BUFFER_ENDPOINT
-    max_retries: int = 1
+    max_retries: int = 2
     max_retry_after_seconds: int = 15
-    request_timeout_seconds: int = 12
+    request_timeout_seconds: int = 20
 
     @classmethod
     def from_env(cls) -> "BufferClient":
         key = os.getenv("BUFFER_API_KEY", "").strip()
         if not key:
-            raise BufferAPIError("BUFFER_API_KEY is required")
+            raise BufferAuthError(detail="BUFFER_API_KEY is required")
         return cls(api_key=key)
 
-    def execute(self, query: str, variables: dict[str, Any] | None = None) -> dict[str, Any]:
+    @staticmethod
+    def _graphql_auth_error(errors: list[dict[str, Any]]) -> bool:
+        for error in errors:
+            extensions = error.get("extensions") or {}
+            code = str(extensions.get("code") or "").upper()
+            if code in {"UNAUTHENTICATED", "FORBIDDEN"}:
+                return True
+        return False
+
+    def execute(
+        self,
+        query: str,
+        variables: dict[str, Any] | None = None,
+        *,
+        retry_transient: bool = True,
+    ) -> dict[str, Any]:
+        """Execute one Buffer GraphQL operation.
+
+        Read operations may retry bounded transient failures. Mutations must pass
+        retry_transient=False so an ambiguous timeout cannot create duplicates.
+        Authentication failures are never retried.
+        """
         payload = json.dumps({"query": query, "variables": variables or {}}).encode("utf-8")
-        for attempt in range(self.max_retries + 1):
+        attempts = self.max_retries + 1 if retry_transient else 1
+
+        for attempt in range(attempts):
             req = urllib.request.Request(
                 self.endpoint,
                 data=payload,
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
-                    "User-Agent": "socialscheduler/3.0",
+                    "User-Agent": "socialscheduler/3.1",
                 },
                 method="POST",
             )
@@ -54,28 +87,37 @@ class BufferClient:
                 with urllib.request.urlopen(req, timeout=self.request_timeout_seconds) as response:
                     body = json.loads(response.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="replace")
+                if exc.code in AUTH_ERROR_CODES:
+                    raise BufferAuthError(exc.code, detail) from exc
                 if exc.code == 429:
                     retry_after = exc.headers.get("Retry-After")
                     retry_after_seconds = int(retry_after) if retry_after and retry_after.isdigit() else None
                     if retry_after_seconds and retry_after_seconds > self.max_retry_after_seconds:
                         raise BufferRateLimitError(retry_after_seconds) from exc
-                    if attempt < self.max_retries:
+                    if retry_transient and attempt < attempts - 1:
                         delay = retry_after_seconds if retry_after_seconds is not None else 5
                         time.sleep(max(1, min(self.max_retry_after_seconds, delay)))
                         continue
                     raise BufferRateLimitError(retry_after_seconds) from exc
-                detail = exc.read().decode("utf-8", errors="replace")
+                if exc.code in TRANSIENT_HTTP_CODES and retry_transient and attempt < attempts - 1:
+                    time.sleep(min(8, 2 ** (attempt + 1)))
+                    continue
                 raise BufferAPIError(f"Buffer HTTP {exc.code}: {detail[:500]}") from exc
             except (urllib.error.URLError, TimeoutError) as exc:
-                if attempt < self.max_retries:
-                    time.sleep(3)
+                if retry_transient and attempt < attempts - 1:
+                    time.sleep(min(8, 2 ** (attempt + 1)))
                     continue
+                qualifier = "read" if retry_transient else "mutation"
                 raise BufferAPIError(
-                    f"Buffer network/timeout error after {self.max_retries + 1} attempts: {exc}"
+                    f"Buffer network/timeout error during {qualifier} after {attempts} attempt(s): {exc}"
                 ) from exc
 
-            if body.get("errors"):
-                raise BufferAPIError(f"Buffer GraphQL error: {body['errors']}")
+            errors = list(body.get("errors") or [])
+            if errors:
+                if self._graphql_auth_error(errors):
+                    raise BufferAuthError(detail=json.dumps(errors, ensure_ascii=False))
+                raise BufferAPIError(f"Buffer GraphQL error: {errors}")
             return body.get("data", {})
         raise BufferAPIError("Buffer request failed after retries")
 
@@ -94,11 +136,7 @@ class BufferClient:
         return self.execute(query, {"input": {"organizationId": organization_id}})["channels"]
 
     def runtime_snapshot(self, organization_id: str) -> dict[str, Any]:
-        """One Buffer request for org access, connected channels and active queue.
-
-        Active queues are capped at 10 per channel on the current Free plan, so a
-        single 100-node page safely covers our three connected channels.
-        """
+        """One Buffer request for org access, connected channels and active queue."""
         query = """
         query RuntimeSnapshot($channelsInput: ChannelsInput!, $postsInput: PostsInput!, $first: Int) {
           account { id organizations { id name } }
@@ -219,7 +257,11 @@ class BufferClient:
           }
         }
         """
-        result = self.execute(query, {"input": {"organizationId": organization_id, "content": content}})["createIdea"]
+        result = self.execute(
+            query,
+            {"input": {"organizationId": organization_id, "content": content}},
+            retry_transient=False,
+        )["createIdea"]
         if result.get("message"):
             raise BufferAPIError(f"createIdea failed: {result['message']}")
         return result
@@ -235,7 +277,7 @@ class BufferClient:
           }
         }
         """
-        result = self.execute(query, {"input": input_data})["createPost"]
+        result = self.execute(query, {"input": input_data}, retry_transient=False)["createPost"]
         if result.get("message"):
             raise BufferAPIError(f"createPost failed: {result['message']}")
         return result["post"]
@@ -249,7 +291,7 @@ class BufferClient:
           }
         }
         """
-        result = self.execute(query, {"input": {"id": post_id}})["deletePost"]
+        result = self.execute(query, {"input": {"id": post_id}}, retry_transient=False)["deletePost"]
         if result.get("message"):
             raise BufferAPIError(f"deletePost failed: {result['message']}")
         return str(result.get("id") or post_id)
