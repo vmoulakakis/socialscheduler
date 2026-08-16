@@ -1,2 +1,2 @@
-trigger: 2026-08-16T17:09:00+03:00
-reason: verify capacity-aware outbox claim at full Buffer queue
+trigger: 2026-08-16T17:52:00+03:00
+reason: validate Full Truth dashboard, per-channel Buffer fill and SocialMarket refill after PR7
