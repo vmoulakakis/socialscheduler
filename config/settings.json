@@ -3,19 +3,23 @@
   "organization_name": "My Organization",
   "timezone": "Europe/Athens",
   "queue_limit": 10,
+  "queue_limit_per_channel": 10,
+  "rolling_refill_hours": 72,
   "idea_limit": 100,
   "future_horizon_days": 120,
   "dedupe_sent_days": 180,
-  "max_creates_per_run": 10,
+  "max_creates_per_run": 30,
   "late_item_policy": "defer",
   "late_item_defer_days": 3,
   "asset_repo": "vmoulakakis/socialscheduler",
   "asset_ref": "main",
+  "dashboard_issue_number": 5,
   "protected_rules": {
     "never_share_now": true,
     "never_share_next": true,
     "never_move_future_due_at_earlier": true,
     "never_duplicate_sent_or_scheduled": true,
-    "queue_correctness_over_fullness": true
+    "queue_correctness_over_fullness": true,
+    "target_buffer_fill_rate_pct": 100
   }
 }
