@@ -72,7 +72,7 @@ class SocialMarketOutboxClient:
         oidc_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), parsed.fragment))
         req = urllib.request.Request(
             oidc_url,
-            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/2.2"},
+            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/3.0"},
             method="GET",
         )
         try:
@@ -94,7 +94,7 @@ class SocialMarketOutboxClient:
                 headers={
                     "Authorization": f"Bearer {self._github_oidc_token()}",
                     "Content-Type": "application/json",
-                    "User-Agent": "socialscheduler/2.2",
+                    "User-Agent": "socialscheduler/3.0",
                 },
                 method="POST",
             )
@@ -122,8 +122,23 @@ class SocialMarketOutboxClient:
     def health(self) -> dict[str, Any]:
         return self._post({"action": "health"})
 
-    def peek(self, limit: int = 10) -> list[dict[str, Any]]:
+    def peek(self, limit: int = 30) -> list[dict[str, Any]]:
         return list(self._post({"action": "peek", "limit": limit}).get("jobs") or [])
+
+    def refill(self, hours: int = 72) -> dict[str, Any]:
+        return dict(self._post({"action": "refill", "hours": hours}).get("refill") or {})
+
+    def claim_capacity(self, capacity: dict[str, int], lease_minutes: int = 30) -> list[dict[str, Any]]:
+        normalized = {
+            service: max(0, min(10, int(capacity.get(service, 0))))
+            for service in ("facebook", "instagram", "tiktok")
+        }
+        return list(self._post({
+            "action": "claim_capacity",
+            "executor": "socialscheduler",
+            "capacity": normalized,
+            "lease_minutes": lease_minutes,
+        }).get("jobs") or [])
 
     def claim(self, limit: int = 10, lease_minutes: int = 30) -> list[dict[str, Any]]:
         return list(self._post({
