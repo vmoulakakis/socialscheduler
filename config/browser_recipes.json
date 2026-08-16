@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "description": "Facebook + Instagram through Meta Business Suite native composer/scheduler",
+    "login_url": "https://business.facebook.com/",
+    "composer_url": "https://business.facebook.com/latest/composer",
+    "login_title_markers": ["log in", "login", "σύνδεση"],
+    "open_composer_labels": [
+      ["Create post", "Δημιουργία ανάρτησης", "Create"]
+    ],
+    "caption_selectors": [
+      "div[contenteditable='true']",
+      "textarea"
+    ],
+    "media_selectors": [
+      "input[type='file'][accept*='image']",
+      "input[type='file']"
+    ],
+    "schedule_labels": ["Schedule", "Προγραμματισμός", "Schedule post"],
+    "final_labels": ["Schedule", "Προγραμματισμός", "Publish", "Δημοσίευση"]
+  },
+  "tiktok": {
+    "description": "TikTok Studio web upload and scheduler",
+    "login_url": "https://www.tiktok.com/login",
+    "composer_url": "https://www.tiktok.com/tiktokstudio/upload?from=webapp",
+    "login_title_markers": ["log in", "login", "σύνδεση"],
+    "open_composer_labels": [],
+    "caption_selectors": [
+      "div[contenteditable='true']",
+      "textarea"
+    ],
+    "media_selectors": [
+      "input[type='file']"
+    ],
+    "schedule_labels": ["Schedule", "Προγραμματισμός"],
+    "final_labels": ["Schedule", "Post", "Δημοσίευση"]
+  },
+  "linkedin": {
+    "description": "LinkedIn native post composer and scheduler",
+    "login_url": "https://www.linkedin.com/login",
+    "composer_url": "https://www.linkedin.com/feed/",
+    "login_title_markers": ["sign in", "login", "σύνδεση"],
+    "open_composer_labels": [
+      ["Start a post", "Δημιουργήστε μια ανάρτηση", "Create a post"]
+    ],
+    "caption_selectors": [
+      "div[contenteditable='true']",
+      "textarea"
+    ],
+    "media_selectors": [
+      "input[type='file']"
+    ],
+    "schedule_labels": ["Schedule", "Προγραμματισμός"],
+    "final_labels": ["Next", "Schedule", "Post", "Δημοσίευση"]
+  }
+}
