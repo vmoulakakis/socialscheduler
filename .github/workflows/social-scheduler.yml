@@ -13,6 +13,10 @@ on:
         options:
           - live
           - dry-run
+  push:
+    branches: [main]
+    paths:
+      - ".github/trigger-buffer"
 
 concurrency:
   group: social-scheduler-buffer
