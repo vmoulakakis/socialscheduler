@@ -78,6 +78,17 @@ class OpenPostClientTests(unittest.TestCase):
             accounts = OpenPostClient.account_ids_from_env()
         self.assertEqual(accounts, {"facebook": "fb-1", "instagram": "ig-1", "tiktok": "tt-1"})
 
+    def test_api_relative_and_instance_root_paths_do_not_duplicate_api_prefix(self):
+        client = FakeOpenPostClient()
+        self.assertEqual(
+            client._absolute_url("/publications"),
+            "https://openpost.example/api/v1/publications",
+        )
+        self.assertEqual(
+            client._absolute_url("/api/v1/media/upload-session/media-1/complete"),
+            "https://openpost.example/api/v1/media/upload-session/media-1/complete",
+        )
+
     def test_schedule_job_uses_native_publication_then_schedule_action(self):
         client = FakeOpenPostClient()
         job = {
