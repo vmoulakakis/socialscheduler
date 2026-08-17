@@ -63,6 +63,7 @@ jobs:
       OPENPOST_ACCOUNT_FACEBOOK: ${{ vars.OPENPOST_ACCOUNT_FACEBOOK }}
       OPENPOST_ACCOUNT_INSTAGRAM: ${{ vars.OPENPOST_ACCOUNT_INSTAGRAM }}
       OPENPOST_ACCOUNT_TIKTOK: ${{ vars.OPENPOST_ACCOUNT_TIKTOK }}
+      OPENPOST_ACCOUNT_LINKEDIN: ${{ vars.OPENPOST_ACCOUNT_LINKEDIN }}
       OPENPOST_MEDIA_MAX_BYTES: ${{ vars.OPENPOST_MEDIA_MAX_BYTES || '104857600' }}
       OPENPOST_MEDIA_READY_TIMEOUT_SECONDS: ${{ vars.OPENPOST_MEDIA_READY_TIMEOUT_SECONDS || '90' }}
       SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
@@ -75,6 +76,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Install OpenPost media dependency
+        if: env.PUBLISHER_BACKEND == 'openpost'
+        run: python -m pip install --disable-pip-version-check -r requirements-openpost.txt
 
       - name: Require Buffer API secret
         if: env.PUBLISHER_BACKEND == 'buffer'
@@ -105,7 +110,7 @@ jobs:
               missing=1
             fi
           done
-          if [ -z "$OPENPOST_ACCOUNT_FACEBOOK$OPENPOST_ACCOUNT_INSTAGRAM$OPENPOST_ACCOUNT_TIKTOK" ]; then
+          if [ -z "$OPENPOST_ACCOUNT_FACEBOOK$OPENPOST_ACCOUNT_INSTAGRAM$OPENPOST_ACCOUNT_TIKTOK$OPENPOST_ACCOUNT_LINKEDIN" ]; then
             echo "At least one OPENPOST_ACCOUNT_* mapping is required."
             missing=1
           fi
@@ -124,7 +129,7 @@ jobs:
               python -m src.postiz_main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
               ;;
             openpost)
-              python -m src.openpost_main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
+              python -m src.openpost_native_main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
               ;;
             *)
               echo "Unsupported PUBLISHER_BACKEND=$PUBLISHER_BACKEND"
