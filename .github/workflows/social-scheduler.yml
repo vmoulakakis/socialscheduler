@@ -29,6 +29,7 @@ on:
         options:
           - buffer
           - postiz
+          - openpost
   push:
     branches: [main]
     paths:
@@ -56,6 +57,14 @@ jobs:
       POSTIZ_INTEGRATION_FACEBOOK: ${{ vars.POSTIZ_INTEGRATION_FACEBOOK }}
       POSTIZ_INTEGRATION_INSTAGRAM: ${{ vars.POSTIZ_INTEGRATION_INSTAGRAM }}
       POSTIZ_INTEGRATION_TIKTOK: ${{ vars.POSTIZ_INTEGRATION_TIKTOK }}
+      OPENPOST_API_URL: ${{ vars.OPENPOST_API_URL }}
+      OPENPOST_API_TOKEN: ${{ secrets.OPENPOST_API_TOKEN }}
+      OPENPOST_WORKSPACE_ID: ${{ vars.OPENPOST_WORKSPACE_ID }}
+      OPENPOST_ACCOUNT_FACEBOOK: ${{ vars.OPENPOST_ACCOUNT_FACEBOOK }}
+      OPENPOST_ACCOUNT_INSTAGRAM: ${{ vars.OPENPOST_ACCOUNT_INSTAGRAM }}
+      OPENPOST_ACCOUNT_TIKTOK: ${{ vars.OPENPOST_ACCOUNT_TIKTOK }}
+      OPENPOST_MEDIA_MAX_BYTES: ${{ vars.OPENPOST_MEDIA_MAX_BYTES || '104857600' }}
+      OPENPOST_MEDIA_READY_TIMEOUT_SECONDS: ${{ vars.OPENPOST_MEDIA_READY_TIMEOUT_SECONDS || '90' }}
       SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
       CONTENT_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.content_source || 'socialmarket_outbox' }}
       SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
@@ -85,6 +94,23 @@ jobs:
             exit 1
           fi
 
+      - name: Require OpenPost configuration
+        if: env.PUBLISHER_BACKEND == 'openpost'
+        shell: bash
+        run: |
+          missing=0
+          for name in OPENPOST_API_URL OPENPOST_API_TOKEN OPENPOST_WORKSPACE_ID; do
+            if [ -z "${!name}" ]; then
+              echo "$name is missing."
+              missing=1
+            fi
+          done
+          if [ -z "$OPENPOST_ACCOUNT_FACEBOOK$OPENPOST_ACCOUNT_INSTAGRAM$OPENPOST_ACCOUNT_TIKTOK" ]; then
+            echo "At least one OPENPOST_ACCOUNT_* mapping is required."
+            missing=1
+          fi
+          exit "$missing"
+
       - name: Execute rolling SocialMarket publisher
         shell: bash
         run: |
@@ -96,6 +122,9 @@ jobs:
               ;;
             postiz)
               python -m src.postiz_main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
+              ;;
+            openpost)
+              python -m src.openpost_main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
               ;;
             *)
               echo "Unsupported PUBLISHER_BACKEND=$PUBLISHER_BACKEND"
@@ -111,11 +140,11 @@ jobs:
           python -m scripts.full_truth_dashboard | tee artifacts/dashboard-build.json
           cat artifacts/admin-dashboard.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Add Postiz result to summary
-        if: always() && env.PUBLISHER_BACKEND == 'postiz'
+      - name: Add alternative publisher result to summary
+        if: always() && (env.PUBLISHER_BACKEND == 'postiz' || env.PUBLISHER_BACKEND == 'openpost')
         shell: bash
         run: |
-          echo '## Postiz Publisher Result' >> "$GITHUB_STEP_SUMMARY"
+          echo "## ${PUBLISHER_BACKEND} Publisher Result" >> "$GITHUB_STEP_SUMMARY"
           echo '```json' >> "$GITHUB_STEP_SUMMARY"
           cat artifacts/scheduler-result.json >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
