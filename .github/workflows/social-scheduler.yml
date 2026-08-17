@@ -21,13 +21,21 @@ on:
         options:
           - socialmarket_outbox
           - legacy_backlog
+      publisher_backend:
+        description: "Publishing backend"
+        required: true
+        default: "buffer"
+        type: choice
+        options:
+          - buffer
+          - postiz
   push:
     branches: [main]
     paths:
       - ".github/trigger-buffer"
 
 concurrency:
-  group: social-scheduler-buffer
+  group: social-scheduler-publisher
   cancel-in-progress: false
 
 permissions:
@@ -36,12 +44,18 @@ permissions:
   id-token: write
 
 jobs:
-  schedule-buffer:
+  schedule-publisher:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      PUBLISHER_BACKEND: ${{ github.event_name == 'workflow_dispatch' && inputs.publisher_backend || vars.PUBLISHER_BACKEND || 'buffer' }}
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
+      POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+      POSTIZ_API_URL: ${{ vars.POSTIZ_API_URL || 'https://api.postiz.com/public/v1' }}
+      POSTIZ_INTEGRATION_FACEBOOK: ${{ vars.POSTIZ_INTEGRATION_FACEBOOK }}
+      POSTIZ_INTEGRATION_INSTAGRAM: ${{ vars.POSTIZ_INTEGRATION_INSTAGRAM }}
+      POSTIZ_INTEGRATION_TIKTOK: ${{ vars.POSTIZ_INTEGRATION_TIKTOK }}
       SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
       CONTENT_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.content_source || 'socialmarket_outbox' }}
       SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
@@ -54,6 +68,7 @@ jobs:
           python-version: "3.12"
 
       - name: Require Buffer API secret
+        if: env.PUBLISHER_BACKEND == 'buffer'
         shell: bash
         run: |
           if [ -z "$BUFFER_API_KEY" ]; then
@@ -61,23 +76,52 @@ jobs:
             exit 1
           fi
 
-      - name: Execute rolling SocialMarket scheduler
+      - name: Require Postiz API secret
+        if: env.PUBLISHER_BACKEND == 'postiz'
+        shell: bash
+        run: |
+          if [ -z "$POSTIZ_API_KEY" ]; then
+            echo "POSTIZ_API_KEY GitHub Actions secret is missing."
+            exit 1
+          fi
+
+      - name: Execute rolling SocialMarket publisher
         shell: bash
         run: |
           mkdir -p artifacts
           set -o pipefail
-          python -m src.main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
+          case "$PUBLISHER_BACKEND" in
+            buffer)
+              python -m src.main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
+              ;;
+            postiz)
+              python -m src.postiz_main --mode "$SCHEDULER_MODE" | tee artifacts/scheduler-result.json
+              ;;
+            *)
+              echo "Unsupported PUBLISHER_BACKEND=$PUBLISHER_BACKEND"
+              exit 1
+              ;;
+          esac
 
-      - name: Build Full Truth Admin Dashboard
-        if: always()
+      - name: Build Buffer Full Truth Admin Dashboard
+        if: always() && env.PUBLISHER_BACKEND == 'buffer'
         shell: bash
         run: |
           mkdir -p artifacts
           python -m scripts.full_truth_dashboard | tee artifacts/dashboard-build.json
           cat artifacts/admin-dashboard.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Update persistent Admin Dashboard
-        if: always() && github.ref == 'refs/heads/main'
+      - name: Add Postiz result to summary
+        if: always() && env.PUBLISHER_BACKEND == 'postiz'
+        shell: bash
+        run: |
+          echo '## Postiz Publisher Result' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/scheduler-result.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Update persistent Buffer Admin Dashboard
+        if: always() && env.PUBLISHER_BACKEND == 'buffer' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -90,11 +134,11 @@ jobs:
           PY
           gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/5" --input artifacts/issue-patch.json
 
-      - name: Upload Full Truth audit artifact
+      - name: Upload publisher audit artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: socialscheduler-full-truth-${{ github.run_number }}
+          name: socialscheduler-${{ env.PUBLISHER_BACKEND }}-${{ github.run_number }}
           path: artifacts/
           if-no-files-found: warn
           retention-days: 30
