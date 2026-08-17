@@ -2,6 +2,18 @@
 
 SocialScheduler can use OpenPost as an execution backend for **already-approved SocialMarket outbox jobs**. OpenPost does not choose products, rewrite approved content, or bypass SocialMarket quality controls.
 
+## Zero-subscription target
+
+The intended production architecture is **self-hosted OpenPost**, using the upstream AGPL-3.0 project and its `selfhost` edition. No OpenPost Hosted/managed subscription is required.
+
+The self-host deployment bundle lives in:
+
+```text
+deploy/openpost/
+```
+
+It uses the official `ghcr.io/getopenpost/openpost:latest` container with SQLite, local media and one persistent Docker volume. See `deploy/openpost/README.md` for the complete no-subscription setup.
+
 ## Data flow
 
 ```text
@@ -15,8 +27,8 @@ SocialScheduler
         +-- PUBLISHER_BACKEND=openpost (new)
                                   |
                                   v
-                         OpenPost Publication
-                         create -> reconcile -> schedule
+                         self-hosted OpenPost
+                         Publication create -> reconcile -> schedule
                                   |
                                   v
                          Facebook / Instagram / TikTok
@@ -26,10 +38,12 @@ The OpenPost adapter preserves the approved `caption`, `hashtags`, `tracking_url
 
 ## Required OpenPost setup
 
-1. Run an OpenPost instance and expose its REST API. `OPENPOST_API_URL` must include the REST prefix, normally `https://<host>/api/v1`.
-2. Sign in to OpenPost and connect the required social accounts through OpenPost OAuth.
+1. Run the self-hosted OpenPost instance on a persistent Docker-capable machine and expose it over public HTTPS.
+2. Sign in to that **self-hosted instance** and connect the required social accounts through provider OAuth.
 3. Identify the OpenPost workspace ID and the connected social-account ID for each channel used by SocialScheduler.
 4. Create an OpenPost API token with `api:write` scope. Prefer a token limited to the SocialScheduler workspace.
+
+There is no requirement to register for or purchase OpenPost Hosted.
 
 ## GitHub Actions configuration
 
@@ -37,7 +51,7 @@ Configure these in the `vmoulakakis/socialscheduler` repository.
 
 ### Secret
 
-- `OPENPOST_API_TOKEN` — OpenPost API token. Never put it in repository variables or source code.
+- `OPENPOST_API_TOKEN` — self-hosted OpenPost API token. Never put it in repository variables or source code.
 
 ### Variables
 
@@ -56,7 +70,7 @@ At least one `OPENPOST_ACCOUNT_*` value is required when the OpenPost backend is
 Do not switch the scheduled workflow to OpenPost immediately.
 
 1. Keep the repository/default `PUBLISHER_BACKEND` on `buffer`.
-2. Configure OpenPost and connect the real social accounts.
+2. Start the self-hosted OpenPost instance and connect the real social accounts.
 3. Manually run **Social Scheduler** with:
    - `publisher_backend = openpost`
    - `mode = dry-run`
