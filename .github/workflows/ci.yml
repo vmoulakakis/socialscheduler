@@ -25,5 +25,11 @@ jobs:
           python -m json.tool config/settings.json >/dev/null
           python -m json.tool config/channels.json >/dev/null
           python -m json.tool config/backlog.json >/dev/null
+      - name: Validate OpenPost self-host compose
+        shell: bash
+        run: |
+          cp deploy/openpost/.env.example deploy/openpost/.env
+          docker compose -f deploy/openpost/docker-compose.yml --env-file deploy/openpost/.env config >/dev/null
+          rm -f deploy/openpost/.env
       - name: Unit tests
         run: python -m unittest discover -s tests -v
