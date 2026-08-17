@@ -52,10 +52,9 @@ def _render_content(job: dict[str, Any]) -> str:
     hashtags = [str(value).strip() for value in (job.get("hashtags") or []) if str(value).strip()]
     tracking_url = str(job.get("tracking_url") or "").strip()
     parts = [caption]
-    if hashtags:
-        extra = [tag for tag in hashtags if tag not in caption]
-        if extra:
-            parts.append(" ".join(extra))
+    extra = [tag for tag in hashtags if tag not in caption]
+    if extra:
+        parts.append(" ".join(extra))
     if tracking_url and tracking_url not in caption:
         parts.append(tracking_url)
     return "\n\n".join(part for part in parts if part).strip()
@@ -76,7 +75,9 @@ class OpenPostClient:
         api_token = os.getenv("OPENPOST_API_TOKEN", "").strip()
         workspace_id = os.getenv("OPENPOST_WORKSPACE_ID", "").strip()
         if not api_url:
-            raise OpenPostAPIError("OPENPOST_API_URL is required and must include the OpenPost REST prefix, normally /api/v1")
+            raise OpenPostAPIError(
+                "OPENPOST_API_URL is required and must include the OpenPost REST prefix, normally /api/v1"
+            )
         if not api_token:
             raise OpenPostAPIError("OPENPOST_API_TOKEN is required")
         if not workspace_id:
@@ -92,17 +93,25 @@ class OpenPostClient:
 
     @staticmethod
     def account_ids_from_env() -> dict[str, str]:
-        resolved: dict[str, str] = {}
-        for service in SERVICES:
-            value = os.getenv(f"OPENPOST_ACCOUNT_{service.upper()}", "").strip()
-            if value:
-                resolved[service] = value
-        return resolved
+        return {
+            service: value
+            for service in SERVICES
+            if (value := os.getenv(f"OPENPOST_ACCOUNT_{service.upper()}", "").strip())
+        }
 
     def _absolute_url(self, path_or_url: str) -> str:
         value = str(path_or_url or "").strip()
         if value.startswith("http://") or value.startswith("https://"):
             return value
+
+        parsed_api = urllib.parse.urlsplit(self.api_url)
+        api_path = parsed_api.path.rstrip("/")
+        # OpenPost upload sessions return complete_url as an instance-root path
+        # such as /api/v1/media/upload-session/{id}/complete. Normal client
+        # calls use API-relative paths such as /publications. Distinguish them
+        # to avoid generating /api/v1/api/v1/... URLs.
+        if value.startswith("/") and api_path and (value == api_path or value.startswith(f"{api_path}/")):
+            return urllib.parse.urlunsplit((parsed_api.scheme, parsed_api.netloc, value, "", ""))
         return f"{self.api_url}/{value.lstrip('/')}"
 
     def _request_json(
@@ -140,13 +149,9 @@ class OpenPostClient:
             raise OpenPostAPIError(
                 f"OpenPost HTTP {exc.code}: {detail or exc.reason}",
                 status_code=exc.code,
-                ambiguous=False,
             ) from exc
         except Exception as exc:
-            raise OpenPostAPIError(
-                f"OpenPost request failed: {exc}",
-                ambiguous=write,
-            ) from exc
+            raise OpenPostAPIError(f"OpenPost request failed: {exc}", ambiguous=write) from exc
 
     def health(self) -> dict[str, Any]:
         rows = self.list_publications(limit=1)
@@ -192,13 +197,13 @@ class OpenPostClient:
         for rendition in publication.get("renditions") or []:
             if not isinstance(rendition, dict):
                 continue
-            url = str(rendition.get("external_url") or "").strip()
-            if url:
-                return url
+            direct = str(rendition.get("external_url") or "").strip()
+            if direct:
+                return direct
             delivery = rendition.get("delivery") if isinstance(rendition.get("delivery"), dict) else {}
-            url = str(delivery.get("external_url") or "").strip()
-            if url:
-                return url
+            nested = str(delivery.get("external_url") or "").strip()
+            if nested:
+                return nested
         return ""
 
     @staticmethod
@@ -240,22 +245,20 @@ class OpenPostClient:
             raise OpenPostAPIError("Approved media_url returned an empty body")
         filename = urllib.parse.unquote(os.path.basename(urllib.parse.urlsplit(media_url).path)) or "socialmarket-media"
         mime_type = mime_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
-        digest = hashlib.sha256(content).hexdigest()
-        return content, filename, mime_type, digest
+        return content, filename, mime_type, hashlib.sha256(content).hexdigest()
 
     def _upload_binary(self, target: dict[str, Any], content: bytes, mime_type: str) -> None:
-        target_url_raw = str(target.get("url") or "").strip()
-        if not target_url_raw:
+        raw_url = str(target.get("url") or "").strip()
+        if not raw_url:
             raise OpenPostAPIError("OpenPost media upload session returned no upload URL")
-        target_url = self._absolute_url(target_url_raw)
+        target_url = self._absolute_url(raw_url)
         method = str(target.get("method") or "PUT").strip().upper()
         headers = {str(key): str(value) for key, value in dict(target.get("headers") or {}).items()}
         headers.setdefault("Content-Type", mime_type)
         headers.setdefault("Content-Length", str(len(content)))
-        api_host = urllib.parse.urlsplit(self.api_url).netloc
-        target_host = urllib.parse.urlsplit(target_url).netloc
-        if target_host == api_host and not any(key.lower() == "authorization" for key in headers):
-            headers["Authorization"] = f"Bearer {self.api_token}"
+        if urllib.parse.urlsplit(target_url).netloc == urllib.parse.urlsplit(self.api_url).netloc:
+            if not any(key.lower() == "authorization" for key in headers):
+                headers["Authorization"] = f"Bearer {self.api_token}"
         request = urllib.request.Request(target_url, data=content, headers=headers, method=method)
         try:
             with urllib.request.urlopen(request, timeout=max(self.timeout_seconds, 60)) as response:
@@ -289,7 +292,10 @@ class OpenPostClient:
                 },
             )
             rows = list((result or {}).get("media") or []) if isinstance(result, dict) else []
-            match = next((row for row in rows if isinstance(row, dict) and str(row.get("id") or "") == media_id), None)
+            match = next(
+                (row for row in rows if isinstance(row, dict) and str(row.get("id") or "") == media_id),
+                None,
+            )
             if match:
                 state = str(match.get("processing_status") or "").strip().lower()
                 if state in {"ready", "completed", "complete"}:
@@ -347,14 +353,15 @@ class OpenPostClient:
         content = _render_content(job)
         if not content:
             raise OpenPostAPIError("OpenPost job has no publishable content")
+
         profile = _content_profile(platform, str(job.get("format") or ""))
         media_url = str(job.get("media_url") or "").strip()
         media: list[dict[str, Any]] = []
         if media_url:
-            media_id = self.upload_from_url(media_url)
-            media = [{"media_id": media_id, "role": "attachment"}]
+            media = [{"media_id": self.upload_from_url(media_url), "role": "attachment"}]
         elif platform in {"instagram", "tiktok"}:
             raise OpenPostAPIError(f"{platform} job requires media_url")
+
         title = str(job.get("title") or "Approved content").strip()
         payload = {
             "workspace_id": self.workspace_id,
@@ -389,23 +396,36 @@ class OpenPostClient:
         )
         return dict(result or {}) if isinstance(result, dict) else {}
 
+    def _result_from_publication(
+        self,
+        publication: dict[str, Any],
+        job: dict[str, Any],
+        *,
+        reconciled: bool,
+        state_override: str = "",
+    ) -> dict[str, Any]:
+        publication_id = str(publication.get("id") or "")
+        state = state_override or self._safe_state(publication) or "scheduled"
+        return {
+            "publicationId": publication_id,
+            "postId": publication_id,
+            "status": state,
+            "scheduledAt": str(publication.get("scheduled_at") or job.get("scheduled_for") or ""),
+            "publishedAt": str(publication.get("actual_run_at") or ""),
+            "externalUrl": self._publication_external_url(publication),
+            "reconciled": reconciled,
+        }
+
     def schedule_job(self, job: dict[str, Any], account_id: str) -> dict[str, Any]:
         job_id = str(job.get("id") or "").strip()
         platform = str(job.get("platform") or "").strip().lower()
         existing = self.find_job_publication(job_id, platform)
-        publication: dict[str, Any]
         reconciled = existing is not None
+
         if existing is not None:
             state = self._safe_state(existing)
             if state in {"scheduled", "queued", "publishing", "published", "sent"}:
-                return {
-                    "publicationId": str(existing.get("id") or ""),
-                    "postId": str(existing.get("id") or ""),
-                    "status": state,
-                    "scheduledAt": str(existing.get("scheduled_at") or job.get("scheduled_for") or ""),
-                    "externalUrl": self._publication_external_url(existing),
-                    "reconciled": True,
-                }
+                return self._result_from_publication(existing, job, reconciled=True)
             if state not in {"", "draft"}:
                 raise OpenPostAPIError(
                     f"Existing OpenPost publication for job {job_id} is in unsafe state {state}; refusing duplicate create"
@@ -426,22 +446,15 @@ class OpenPostClient:
         revision = int(publication.get("revision") or 0)
         if not publication_id or revision <= 0:
             raise OpenPostAPIError("OpenPost publication is missing id/revision; refusing schedule mutation")
+
         try:
             self.schedule_publication(publication_id, revision)
         except OpenPostAPIError as exc:
             if not exc.ambiguous:
                 raise
             current = self.get_publication(publication_id)
-            state = self._safe_state(current)
-            if state not in {"scheduled", "queued", "publishing", "published", "sent"}:
+            if self._safe_state(current) not in {"scheduled", "queued", "publishing", "published", "sent"}:
                 raise
-            publication = current
-            reconciled = True
-        return {
-            "publicationId": publication_id,
-            "postId": publication_id,
-            "status": "scheduled",
-            "scheduledAt": str(publication.get("scheduled_at") or job.get("scheduled_for") or ""),
-            "externalUrl": self._publication_external_url(publication),
-            "reconciled": reconciled,
-        }
+            return self._result_from_publication(current, job, reconciled=True)
+
+        return self._result_from_publication(publication, job, reconciled=reconciled, state_override="scheduled")
