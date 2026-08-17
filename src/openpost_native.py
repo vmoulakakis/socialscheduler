@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import io
 from typing import Any
 
 from .openpost_client import (
@@ -46,6 +48,67 @@ class OpenPostClient(BaseOpenPostClient):
             if (value := os.getenv(f"OPENPOST_ACCOUNT_{service.upper()}", "").strip())
         }
 
+    def _upload_bytes(self, content: bytes, filename: str, mime_type: str) -> str:
+        digest = hashlib.sha256(content).hexdigest()
+        session = self._request_json(
+            "POST",
+            "/media/upload-session",
+            {
+                "workspace_id": self.workspace_id,
+                "filename": filename,
+                "mime_type": mime_type,
+                "size": len(content),
+                "source": "upload",
+                "retention_class": "temporary",
+                "client_sha256": digest,
+            },
+            write=True,
+        )
+        if not isinstance(session, dict) or not session.get("media_id"):
+            raise OpenPostAPIError("OpenPost create-media-upload-session returned an invalid response")
+        media_id = str(session["media_id"])
+        if not bool(session.get("deduped")):
+            upload = session.get("upload")
+            if not isinstance(upload, dict):
+                raise OpenPostAPIError("OpenPost media upload session returned no upload target")
+            self._upload_binary(upload, content, mime_type)
+            complete_url = str(session.get("complete_url") or f"/media/upload-session/{media_id}/complete")
+            completed = self._request_json(
+                "POST",
+                complete_url,
+                {"workspace_id": self.workspace_id},
+                write=True,
+            )
+            if isinstance(completed, dict) and completed.get("id"):
+                media_id = str(completed["id"])
+        self._wait_media_ready(media_id)
+        return media_id
+
+    def upload_tiktok_photo_from_url(self, media_url: str) -> str:
+        content, filename, mime_type, _ = self._download_media(media_url)
+        normalized = mime_type.strip().lower()
+        if normalized in {"image/jpeg", "image/webp"}:
+            return self._upload_bytes(content, filename, normalized)
+        if not normalized.startswith("image/"):
+            raise OpenPostAPIError(
+                f"TikTok photo post requires image media; approved asset was {mime_type or 'unknown'}"
+            )
+        try:
+            from PIL import Image
+        except ImportError as exc:  # pragma: no cover - deployment guard
+            raise OpenPostAPIError("Pillow is required for TikTok image normalization") from exc
+        try:
+            with Image.open(io.BytesIO(content)) as image:
+                output = io.BytesIO()
+                image.save(output, format="WEBP", lossless=True, method=6)
+                converted = output.getvalue()
+        except Exception as exc:
+            raise OpenPostAPIError(f"Unable to normalize TikTok photo creative to WebP: {exc}") from exc
+        if not converted:
+            raise OpenPostAPIError("TikTok WebP normalization produced an empty image")
+        stem = filename.rsplit(".", 1)[0] if "." in filename else filename
+        return self._upload_bytes(converted, f"{stem}.webp", "image/webp")
+
     def create_publication(self, job: dict[str, Any], account_id: str) -> dict[str, Any]:
         job_id = str(job.get("id") or "").strip()
         platform = str(job.get("platform") or "").strip().lower()
@@ -57,11 +120,16 @@ class OpenPostClient(BaseOpenPostClient):
         if not content:
             raise OpenPostAPIError("OpenPost job has no publishable content")
 
-        profile = _native_profile(platform, str(job.get("format") or ""))
+        fmt = str(job.get("format") or "post").strip().lower()
+        profile = _native_profile(platform, fmt)
         media_url = str(job.get("media_url") or "").strip()
         media: list[dict[str, Any]] = []
         if media_url:
-            media = [{"media_id": self.upload_from_url(media_url), "role": "attachment"}]
+            if platform == "tiktok" and profile == "post":
+                media_id = self.upload_tiktok_photo_from_url(media_url)
+            else:
+                media_id = self.upload_from_url(media_url)
+            media = [{"media_id": media_id, "role": "attachment"}]
         elif platform in {"instagram", "tiktok"}:
             raise OpenPostAPIError(f"{platform} job requires media_url")
 
@@ -80,7 +148,7 @@ class OpenPostClient(BaseOpenPostClient):
                 "publisher": "openpost",
                 "socialmarket_job_id": job_id,
                 "platform": platform,
-                "format": str(job.get("format") or "post").strip().lower(),
+                "format": fmt,
                 "tracking_url": str(job.get("tracking_url") or "").strip(),
             },
             "social_account_ids": [account_id],
