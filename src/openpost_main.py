@@ -136,7 +136,7 @@ def main() -> int:
                     "published",
                     external_post_id=publication_id,
                     external_permalink=external_url,
-                    published_at=datetime.now(timezone.utc).isoformat(),
+                    published_at=str(result.get("publishedAt") or datetime.now(timezone.utc).isoformat()),
                     metadata={
                         "publisher": "openpost",
                         "platform": platform,
@@ -168,6 +168,7 @@ def main() -> int:
                 "platform": platform,
                 "publication_id": publication_id,
                 "due_at": str(result.get("scheduledAt") or scheduled_for),
+                "published_at": str(result.get("publishedAt") or "") or None,
                 "external_url": external_url,
             })
         except OpenPostAPIError as exc:
