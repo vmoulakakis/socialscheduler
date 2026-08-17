@@ -8,8 +8,6 @@ The operator supplies the runtime machine, public HTTPS endpoint, backups and so
 
 ## What is already integrated
 
-SocialScheduler already contains the OpenPost publisher adapter. This folder adds the missing runtime bundle:
-
 ```text
 SocialMarket approved publish.outbox
         |
@@ -20,11 +18,12 @@ SocialScheduler
 self-hosted OpenPost
         |
         +-- Facebook Page
-        +-- Instagram Business / Creator
-        +-- TikTok
+        +-- Instagram Feed / Story
+        +-- TikTok Photo Feed / Video
+        +-- LinkedIn Profile / Organization Page
 ```
 
-LinkedIn can also be connected in OpenPost, but the current SocialMarket outbox claim contract only supplies Facebook, Instagram and TikTok jobs. Do not enable SocialScheduler LinkedIn publishing until that upstream contract is extended.
+Production auto-routing uses Instagram Feed + Story and TikTok Photo Feed with approved static creatives. Instagram Reels and TikTok video execution remain supported only when the outbox contains a real approved video asset. TikTok Story is not exposed as a publishing path because the current OpenPost TikTok adapter does not support it.
 
 ## Runtime requirements
 
@@ -121,11 +120,11 @@ OpenPost documents these scopes:
 - `video.publish`
 - `video.upload`
 
-Facebook, Instagram and TikTok media publishing requires publicly reachable HTTPS media URLs.
+For static SocialMarket PNG creatives, SocialScheduler converts the asset losslessly to WebP before a TikTok Photo Feed publication, because the OpenPost TikTok adapter accepts JPEG/WebP images for photo posts.
 
 ### LinkedIn
 
-OpenPost supports LinkedIn profiles and Organization Pages. Its self-host config uses:
+OpenPost supports LinkedIn profiles and Organization Pages. Configure:
 
 ```env
 LINKEDIN_CLIENT_ID=...
@@ -138,7 +137,9 @@ Default callback:
 https://<host>/api/v1/accounts/linkedin/callback
 ```
 
-Current SocialScheduler production execution remains FB/IG/TikTok until the SocialMarket outbox contract is extended for LinkedIn.
+For an Organization Page, enable `OPENPOST_LINKEDIN_ORGANIZATIONS_ENABLED=true` only after LinkedIn approves the organization scopes required by the app.
+
+Facebook, Instagram and TikTok media publishing requires publicly reachable HTTPS media URLs.
 
 ## 4. Create the first OpenPost account locally
 
@@ -168,6 +169,7 @@ OPENPOST_WORKSPACE_ID=<workspace-id>
 OPENPOST_ACCOUNT_FACEBOOK=<connected-account-id>
 OPENPOST_ACCOUNT_INSTAGRAM=<connected-account-id>
 OPENPOST_ACCOUNT_TIKTOK=<connected-account-id>
+OPENPOST_ACCOUNT_LINKEDIN=<connected-account-id>
 ```
 
 Secret:
@@ -178,7 +180,20 @@ OPENPOST_API_TOKEN=<workspace token>
 
 Keep the recurring backend on Buffer until validation is complete.
 
-## 7. Validate with zero mutations first
+## 7. Current SocialMarket schedule contract
+
+The weekly target stays at **300** total publications; LinkedIn was added by redistribution rather than by increasing volume:
+
+| Channel | Weekly target | Automatic static formats |
+|---|---:|---|
+| Facebook | 110 | Feed/Post |
+| Instagram | 90 | 72 Feed + 18 Story |
+| TikTok | 70 | Photo Feed |
+| LinkedIn | 30 | Feed/Post |
+
+The executor can also handle Instagram Reel and TikTok video when a real approved video job is supplied. It does not convert a static PNG into a fake video.
+
+## 8. Validate with zero mutations first
 
 Manually dispatch **Social Scheduler**:
 
