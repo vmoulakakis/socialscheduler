@@ -33,5 +33,23 @@ jobs:
           cp deploy/openpost/.env.example deploy/openpost/.env
           docker compose -f deploy/openpost/docker-compose.yml --env-file deploy/openpost/.env config >/dev/null
           rm -f deploy/openpost/.env
+      - name: Validate Windows OpenPost PowerShell scripts
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($path in @(
+            'deploy/openpost-windows/install-openpost.ps1',
+            'deploy/openpost-windows/uninstall-openpost.ps1'
+          )) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $failed = $true
+              Write-Host "PowerShell parse errors in $path" -ForegroundColor Red
+              $errors | ForEach-Object { Write-Host $_.Message -ForegroundColor Red }
+            }
+          }
+          if ($failed) { exit 1 }
       - name: Unit tests
         run: python -m unittest discover -s tests -v
