@@ -1,0 +1,80 @@
+name: BrightBean Hybrid Publisher
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "BrightBean publisher mode"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - dry-run
+          - live
+  schedule:
+    - cron: "37 * * * *"
+
+concurrency:
+  group: social-scheduler-publisher
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-brightbean:
+    if: github.event_name == 'workflow_dispatch' || vars.BRIGHTBEAN_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
+      BRIGHTBEAN_API_URL: ${{ vars.BRIGHTBEAN_API_URL || 'https://studio.brightbean.xyz/api/v1' }}
+      BRIGHTBEAN_API_KEY: ${{ secrets.BRIGHTBEAN_API_KEY }}
+      BRIGHTBEAN_PLATFORMS: ${{ vars.BRIGHTBEAN_PLATFORMS || 'linkedin' }}
+      BRIGHTBEAN_ACCOUNT_LINKEDIN: ${{ vars.BRIGHTBEAN_ACCOUNT_LINKEDIN }}
+      BRIGHTBEAN_ACCOUNT_FACEBOOK: ${{ vars.BRIGHTBEAN_ACCOUNT_FACEBOOK }}
+      BRIGHTBEAN_ACCOUNT_INSTAGRAM: ${{ vars.BRIGHTBEAN_ACCOUNT_INSTAGRAM }}
+      BRIGHTBEAN_ACCOUNT_TIKTOK: ${{ vars.BRIGHTBEAN_ACCOUNT_TIKTOK }}
+      SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+      OUTBOX_HORIZON_HOURS: "72"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Require BrightBean API secret
+        shell: bash
+        run: |
+          if [ -z "$BRIGHTBEAN_API_KEY" ]; then
+            echo "BRIGHTBEAN_API_KEY GitHub Actions secret is missing."
+            exit 1
+          fi
+
+      - name: Execute BrightBean publisher
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          python -m src.brightbean_main --mode "$SCHEDULER_MODE" | tee artifacts/brightbean-result.json
+
+      - name: Add BrightBean result to summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## BrightBean Hybrid Publisher" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/brightbean-result.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload BrightBean audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialscheduler-brightbean-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
