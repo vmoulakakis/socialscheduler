@@ -70,12 +70,38 @@ jobs:
       CONTENT_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.content_source || 'socialmarket_outbox' }}
       SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+      PUBLISHER_RUNTIME_CONFIG_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publisher-runtime-config"
       TRUTH_ARTIFACT_DIR: artifacts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Load provider config from SocialScheduler Admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          token_json="$(curl -fsSL -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${SOCIALMARKET_OIDC_AUDIENCE}")"
+          oidc_token="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$token_json")"
+          runtime_json="$(curl -fsSL -X POST "$PUBLISHER_RUNTIME_CONFIG_URL" \
+            -H "Authorization: Bearer ${oidc_token}" \
+            -H "Content-Type: application/json" \
+            --data "{\"provider_key\":\"${PUBLISHER_BACKEND}\"}")"
+          export RUNTIME_JSON="$runtime_json"
+          python - <<'PY'
+          import json, os
+          data = json.loads(os.environ["RUNTIME_JSON"])
+          env = data.get("env") if data.get("configured") else {}
+          env = env if isinstance(env, dict) else {}
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              for key, value in env.items():
+                  if value is None:
+                      continue
+                  clean = str(value).replace("\r", " ").replace("\n", " ")
+                  handle.write(f"{key}={clean}\n")
+          print("SocialScheduler Admin provider config:", "loaded" if env else "not configured; repository fallback remains active")
+          PY
 
       - name: Install OpenPost media dependency
         if: env.PUBLISHER_BACKEND == 'openpost'
@@ -86,7 +112,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$BUFFER_API_KEY" ]; then
-            echo "BUFFER_API_KEY GitHub Actions secret is missing."
+            echo "BUFFER_API_KEY is missing from both SocialScheduler Admin Vault and GitHub Actions secrets."
             exit 1
           fi
 
@@ -95,7 +121,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$POSTIZ_API_KEY" ]; then
-            echo "POSTIZ_API_KEY GitHub Actions secret is missing."
+            echo "POSTIZ_API_KEY is missing from both SocialScheduler Admin Vault and GitHub Actions secrets."
             exit 1
           fi
 
