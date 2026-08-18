@@ -131,11 +131,14 @@ def make_poster(row):
     d.rounded_rectangle((70, y, 660, y + 68), radius=28, fill=accent)
     d.text((98, y + 16), cta, font=cta_f, fill=(8, 18, 28))
 
-    qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=9, border=2)
+    # Keep every QR module on an integer pixel grid. Never resize/resample a QR image.
+    qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=5, border=3)
     qr.add_data(tracking); qr.make(fit=True)
-    qr_im = qr.make_image(fill_color="black", back_color="white").convert("RGB").resize((250, 250))
-    im.paste(qr_im, (760, 745))
-    d.rounded_rectangle((742, 727, 1028, 1015), radius=22, outline=accent, width=4)
+    qr_im = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+    qr_w, qr_h = qr_im.size
+    qr_x, qr_y = 735, 720
+    im.paste(qr_im, (qr_x, qr_y))
+    d.rounded_rectangle((qr_x - 14, qr_y - 14, qr_x + qr_w + 14, qr_y + qr_h + 14), radius=20, outline=accent, width=4)
     d.text((70, 866), "SCAN → TRACKED LINK", font=small_f, fill=accent)
     d.text((70, 905), "Το QR οδηγεί στο πραγματικό tracking URL.", font=small_f, fill=(201, 218, 231))
     if tags:
@@ -144,7 +147,7 @@ def make_poster(row):
         d.text((850, 62), f"OPP {float(row['opportunity_score']):.1f}", font=small_f, fill=(232, 244, 250))
 
     im.save(dest, "PNG", optimize=True)
-    return {"content_item_id": cid, "path": str(dest), "status": "generated", "url": row.get("expected_media_url"), "tracking_url": tracking, "hashtags": tags}
+    return {"content_item_id": cid, "path": str(dest), "status": "generated", "url": row.get("expected_media_url"), "tracking_url": tracking, "hashtags": tags, "qr_modules": qr.modules_count, "qr_pixel_size": [qr_w, qr_h]}
 
 
 def main():
