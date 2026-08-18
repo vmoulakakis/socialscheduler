@@ -94,7 +94,11 @@ def main() -> int:
                     capacity[service] = int(channel_slo[service]["missing"])
 
                 refill_result = outbox.refill(int(settings.get("outbox_horizon_hours", 72)))
-                jobs = outbox.claim_capacity(capacity)
+                jobs = outbox.claim_provider_capacity(
+                    "buffer",
+                    capacity,
+                    executor="socialscheduler-buffer",
+                )
                 settings["preclaim_capacity"] = capacity
                 settings["preclaim_active_queue"] = int(queue_slo["active"])
             else:
@@ -147,7 +151,7 @@ def main() -> int:
         result["outbox_jobs_received_by_platform"] = dict(Counter(job.get("platform") for job in jobs))
         if args.mode == "live":
             try:
-                result["outbox_sync"] = outbox.sync_scheduler_actions(result.get("actions", []))
+                result["outbox_sync"] = outbox.sync_scheduler_actions(result.get("actions", []), publisher="buffer")
                 pending = outbox.peek(50)
                 result["outbox_pending_preview_count"] = len(pending)
                 result["outbox_pending_by_platform"] = dict(Counter(job.get("platform") for job in pending))
