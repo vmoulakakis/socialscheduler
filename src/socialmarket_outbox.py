@@ -72,7 +72,7 @@ class SocialMarketOutboxClient:
         oidc_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), parsed.fragment))
         req = urllib.request.Request(
             oidc_url,
-            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/3.0"},
+            headers={"Authorization": f"Bearer {request_token}", "User-Agent": "socialscheduler/4.0"},
             method="GET",
         )
         try:
@@ -94,7 +94,7 @@ class SocialMarketOutboxClient:
                 headers={
                     "Authorization": f"Bearer {self._github_oidc_token()}",
                     "Content-Type": "application/json",
-                    "User-Agent": "socialscheduler/3.0",
+                    "User-Agent": "socialscheduler/4.0",
                 },
                 method="POST",
             )
@@ -148,6 +148,32 @@ class SocialMarketOutboxClient:
             "lease_minutes": lease_minutes,
         }).get("jobs") or [])
 
+    def claim_provider_capacity(
+        self,
+        provider_key: str,
+        capacity: dict[str, int],
+        *,
+        executor: str | None = None,
+        lease_minutes: int = 30,
+    ) -> list[dict[str, Any]]:
+        provider = provider_key.strip().lower()
+        if provider not in {"buffer", "postzen", "brightbean"}:
+            raise SocialMarketOutboxError(f"Unsupported orchestrated provider '{provider}'")
+        safe = {
+            name: max(0, min(20, int(capacity.get(name, 0))))
+            for name in ("facebook", "instagram", "tiktok", "linkedin")
+        }
+        return list(self._post({
+            "action": "claim_provider_capacity",
+            "provider_key": provider,
+            "executor": executor or f"socialscheduler-{provider}",
+            "capacity": safe,
+            "lease_minutes": lease_minutes,
+        }).get("jobs") or [])
+
+    def rebalance(self) -> dict[str, Any]:
+        return dict(self._post({"action": "rebalance"}).get("result") or {})
+
     def ack(self, job_id: str, status: str, *, external_post_id: str | None = None,
             external_permalink: str | None = None, scheduled_at: str | None = None,
             published_at: str | None = None, error: str | None = None,
@@ -165,15 +191,15 @@ class SocialMarketOutboxClient:
     def optimize_week(self, week_start: str) -> dict[str, Any]:
         return dict(self._post({"action": "optimize_week", "week_start": week_start}).get("result") or {})
 
-    def sync_scheduler_actions(self, actions: list[dict[str, Any]]) -> dict[str, int]:
-        """Archive successful Buffer schedules immediately while retaining old diagnostics."""
+    def sync_scheduler_actions(self, actions: list[dict[str, Any]], *, publisher: str = "buffer") -> dict[str, int]:
+        """Archive successful schedules while preserving provider evidence."""
         counts = {"scheduled": 0, "scheduled_archived": 0, "published": 0, "failed": 0}
         for action in actions:
             job_id = str(action.get("campaign") or "").strip()
             if not job_id:
                 continue
             action_type = action.get("type")
-            platform_meta = {"platform": action.get("service")}
+            platform_meta = {"platform": action.get("service"), "publisher": publisher}
             if action_type in {"scheduled", "already_scheduled"}:
                 self.ack(
                     job_id,
@@ -194,7 +220,7 @@ class SocialMarketOutboxClient:
                 )
                 counts["published"] += 1
             elif action_type in {"already_error", "skip_late"}:
-                reason = action.get("reason") or ("scheduled_time_elapsed" if action_type == "skip_late" else "buffer_status_error")
+                reason = action.get("reason") or ("scheduled_time_elapsed" if action_type == "skip_late" else "publisher_status_error")
                 self.ack(job_id, "failed", external_post_id=action.get("postId"), error=reason, metadata=platform_meta)
                 counts["failed"] += 1
             elif action_type == "blocked" and action.get("reason") in {"media_unavailable", "fresh_verification_required"}:
