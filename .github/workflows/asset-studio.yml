@@ -37,7 +37,7 @@ jobs:
         run: pip install 'Pillow>=11,<13' 'qrcode[pil]>=8,<9'
 
       - name: Generate missing posters + QR assets
-        run: python scripts/generate_missing_assets.py
+        run: python scripts/generate_missing_assets_v2.py
 
       - name: Commit generated assets
         run: |
