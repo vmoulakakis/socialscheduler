@@ -120,27 +120,26 @@ def make_poster(row):
     d.text((92, 73), brand.upper(), font=brand_f, fill=(245, 249, 252))
 
     y = 175
-    for line in wrap(d, title, title_f, 870, 4):
+    for line in wrap(d, title, title_f, 820, 3):
         d.text((70, y), line, font=title_f, fill=(255, 255, 255)); y += 78
     y += 16
-    hook = body.split("\n")[0][:260]
-    for line in wrap(d, hook, body_f, 820, 4):
+    hook = body.split("\n")[0][:180]
+    for line in wrap(d, hook, body_f, 660, 3):
         d.text((72, y), line, font=body_f, fill=(217, 231, 241)); y += 45
 
-    y = min(760, max(y + 30, 590))
-    d.rounded_rectangle((70, y, 660, y + 68), radius=28, fill=accent)
+    y = min(620, max(y + 30, 540))
+    d.rounded_rectangle((70, y, 560, y + 68), radius=28, fill=accent)
     d.text((98, y + 16), cta, font=cta_f, fill=(8, 18, 28))
 
-    # Keep every QR module on an integer pixel grid. Never resize/resample a QR image.
-    qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=5, border=3)
+    # Decoder-verified full-poster QR: exact tracking URL, integer modules, no resampling.
+    qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=3)
     qr.add_data(tracking); qr.make(fit=True)
     qr_im = qr.make_image(fill_color="black", back_color="white").convert("RGB")
     qr_w, qr_h = qr_im.size
-    qr_x, qr_y = 735, 720
+    qr_x, qr_y = 600, 610
     im.paste(qr_im, (qr_x, qr_y))
-    d.rounded_rectangle((qr_x - 14, qr_y - 14, qr_x + qr_w + 14, qr_y + qr_h + 14), radius=20, outline=accent, width=4)
-    d.text((70, 866), "SCAN → TRACKED LINK", font=small_f, fill=accent)
-    d.text((70, 905), "Το QR οδηγεί στο πραγματικό tracking URL.", font=small_f, fill=(201, 218, 231))
+    d.text((70, 830), "SCAN → TRACKED LINK", font=small_f, fill=accent)
+    d.text((70, 868), "QR = ακριβές tracking URL", font=small_f, fill=(201, 218, 231))
     if tags:
         d.text((70, 970), "  ".join(tags[:4]), font=tag_f, fill=(228, 239, 247))
     if row.get("opportunity_score") is not None:
