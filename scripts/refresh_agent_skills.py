@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild skills/MASTER_SKILLS.md from stable role cards + live operating telemetry."""
+"""Rebuild skills/MASTER_SKILLS.md from stable role cards + safe live telemetry snapshot."""
 from __future__ import annotations
 
 import json
@@ -15,7 +15,7 @@ MASTER = Path("skills/MASTER_SKILLS.md")
 
 
 def fetch_context():
-    url = f"{SUPABASE_URL}/rest/v1/socialscheduler_agent_nightly_context_v?select=*&limit=1"
+    url = f"{SUPABASE_URL}/rest/v1/socialscheduler_public_agent_context?select=*&id=eq.1&limit=1"
     req = urllib.request.Request(url, headers={"apikey": SUPABASE_ANON_KEY, "authorization": f"Bearer {SUPABASE_ANON_KEY}", "accept": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:
         rows = json.loads(r.read().decode("utf-8"))
@@ -63,7 +63,7 @@ def main():
         "",
         f"Generated automatically: `{now}`",
         "",
-        "> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from live SocialScheduler telemetry. User ideas are evaluated as hypotheses, not copied into policy automatically.",
+        "> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.",
         "",
         "## Tonight's Operating Priorities",
     ]
