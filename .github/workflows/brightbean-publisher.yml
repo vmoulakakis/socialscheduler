@@ -1,4 +1,4 @@
-name: BrightBean Hybrid Publisher
+name: BrightBean Orchestrated Publisher
 
 on:
   workflow_dispatch:
@@ -24,14 +24,13 @@ permissions:
 
 jobs:
   publish-brightbean:
-    if: github.event_name == 'workflow_dispatch' || vars.BRIGHTBEAN_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
       BRIGHTBEAN_API_URL: ${{ vars.BRIGHTBEAN_API_URL || 'https://studio.brightbean.xyz/api/v1' }}
       BRIGHTBEAN_API_KEY: ${{ secrets.BRIGHTBEAN_API_KEY }}
-      BRIGHTBEAN_PLATFORMS: ${{ vars.BRIGHTBEAN_PLATFORMS || 'linkedin' }}
+      BRIGHTBEAN_PLATFORMS: ${{ vars.BRIGHTBEAN_PLATFORMS || 'linkedin,facebook,instagram,tiktok' }}
       BRIGHTBEAN_ACCOUNT_LINKEDIN: ${{ vars.BRIGHTBEAN_ACCOUNT_LINKEDIN }}
       BRIGHTBEAN_ACCOUNT_FACEBOOK: ${{ vars.BRIGHTBEAN_ACCOUNT_FACEBOOK }}
       BRIGHTBEAN_ACCOUNT_INSTAGRAM: ${{ vars.BRIGHTBEAN_ACCOUNT_INSTAGRAM }}
@@ -69,18 +68,22 @@ jobs:
                       continue
                   clean = str(value).replace("\r", " ").replace("\n", " ")
                   handle.write(f"{key}={clean}\n")
-          print("SocialScheduler Admin BrightBean config:", "loaded" if env else "not configured; repository fallback remains active")
+          print("SocialScheduler Admin BrightBean config:", "loaded" if env else "not configured")
           PY
 
-      - name: Require BrightBean API secret
+      - name: Detect BrightBean configuration
+        id: config
         shell: bash
         run: |
           if [ -z "$BRIGHTBEAN_API_KEY" ]; then
-            echo "BRIGHTBEAN_API_KEY is missing from both SocialScheduler Admin Vault and GitHub Actions secrets."
-            exit 1
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "BrightBean is not configured; no jobs will be claimed."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Execute BrightBean publisher
+        if: steps.config.outputs.configured == 'true'
         shell: bash
         run: |
           mkdir -p artifacts
@@ -91,10 +94,14 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "## BrightBean Hybrid Publisher" >> "$GITHUB_STEP_SUMMARY"
-          echo '```json' >> "$GITHUB_STEP_SUMMARY"
-          cat artifacts/brightbean-result.json >> "$GITHUB_STEP_SUMMARY" || true
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "## BrightBean Orchestrated Publisher" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f artifacts/brightbean-result.json ]; then
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat artifacts/brightbean-result.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No BrightBean execution was required." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload BrightBean audit artifact
         if: always()
@@ -102,5 +109,5 @@ jobs:
         with:
           name: socialscheduler-brightbean-${{ github.run_number }}
           path: artifacts/
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 30
