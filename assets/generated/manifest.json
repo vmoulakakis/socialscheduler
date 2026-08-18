@@ -1,187 +1,428 @@
 {
-  "generated_at": "2026-08-18T18:26:59.170403+00:00",
+  "generated_at": "2026-08-18T18:29:50.028918+00:00",
   "source": "socialscheduler_public_asset_feed",
+  "render_version": "opportunity-poster-v3-qr440",
   "count": 30,
   "items": [
     {
-      "content_item_id": "7d4c64f2-581e-4156-8c12-7577958a4052",
-      "path": "assets/generated/7d4c64f2-581e-4156-8c12-7577958a4052.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/7d4c64f2-581e-4156-8c12-7577958a4052.png"
+      "content_item_id": "b0792256-1e64-4fa3-b983-0b36f88717f1",
+      "path": "assets/generated/b0792256-1e64-4fa3-b983-0b36f88717f1.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/b0792256-1e64-4fa3-b983-0b36f88717f1.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-04",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "747a0da2-48f0-4465-946a-f67f53636358",
-      "path": "assets/generated/747a0da2-48f0-4465-946a-f67f53636358.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/747a0da2-48f0-4465-946a-f67f53636358.png"
+      "content_item_id": "9a97e39d-9617-40fd-b419-204afed08a42",
+      "path": "assets/generated/9a97e39d-9617-40fd-b419-204afed08a42.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/9a97e39d-9617-40fd-b419-204afed08a42.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-09",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "8c9628de-d141-4217-8114-6a6f2a08c740",
-      "path": "assets/generated/8c9628de-d141-4217-8114-6a6f2a08c740.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/8c9628de-d141-4217-8114-6a6f2a08c740.png"
+      "content_item_id": "0e3ff45e-1234-492e-bc76-98ca8b3665d2",
+      "path": "assets/generated/0e3ff45e-1234-492e-bc76-98ca8b3665d2.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/0e3ff45e-1234-492e-bc76-98ca8b3665d2.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-08",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "d5589caf-e9dd-4caa-9be0-d34565732dac",
-      "path": "assets/generated/d5589caf-e9dd-4caa-9be0-d34565732dac.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d5589caf-e9dd-4caa-9be0-d34565732dac.png"
+      "content_item_id": "d58f1c28-a050-4e4f-adc7-a010549a3c17",
+      "path": "assets/generated/d58f1c28-a050-4e4f-adc7-a010549a3c17.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d58f1c28-a050-4e4f-adc7-a010549a3c17.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-08",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "4c7c8c5c-db40-4998-a676-b22ad820f107",
-      "path": "assets/generated/4c7c8c5c-db40-4998-a676-b22ad820f107.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/4c7c8c5c-db40-4998-a676-b22ad820f107.png"
+      "content_item_id": "fa9b868c-19d4-433e-b3ce-4d3995842a70",
+      "path": "assets/generated/fa9b868c-19d4-433e-b3ce-4d3995842a70.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/fa9b868c-19d4-433e-b3ce-4d3995842a70.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-01",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "f6180a61-0cca-4114-857c-17c10da2c522",
-      "path": "assets/generated/f6180a61-0cca-4114-857c-17c10da2c522.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f6180a61-0cca-4114-857c-17c10da2c522.png"
+      "content_item_id": "8fe763ad-d9f1-420a-96c4-f6725a07d86e",
+      "path": "assets/generated/8fe763ad-d9f1-420a-96c4-f6725a07d86e.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/8fe763ad-d9f1-420a-96c4-f6725a07d86e.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-07",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "807dda12-f1e0-489c-9b40-f93671fe0dc6",
-      "path": "assets/generated/807dda12-f1e0-489c-9b40-f93671fe0dc6.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/807dda12-f1e0-489c-9b40-f93671fe0dc6.png"
+      "content_item_id": "fbe0af1d-92c0-4fce-b76b-f0e96a29eb75",
+      "path": "assets/generated/fbe0af1d-92c0-4fce-b76b-f0e96a29eb75.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/fbe0af1d-92c0-4fce-b76b-f0e96a29eb75.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-01",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3",
-      "path": "assets/generated/f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3.png"
+      "content_item_id": "834c2763-993d-42c3-8d0f-367dbf00dc31",
+      "path": "assets/generated/834c2763-993d-42c3-8d0f-367dbf00dc31.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/834c2763-993d-42c3-8d0f-367dbf00dc31.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-03",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "957d52c0-c965-4d51-8c2c-b7462596db74",
-      "path": "assets/generated/957d52c0-c965-4d51-8c2c-b7462596db74.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/957d52c0-c965-4d51-8c2c-b7462596db74.png"
+      "content_item_id": "e760b42f-cb0d-4b38-9e2e-ca5457bea4a3",
+      "path": "assets/generated/e760b42f-cb0d-4b38-9e2e-ca5457bea4a3.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e760b42f-cb0d-4b38-9e2e-ca5457bea4a3.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-05",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "f892b9a0-e166-41f3-b2c1-ec4667a84205",
-      "path": "assets/generated/f892b9a0-e166-41f3-b2c1-ec4667a84205.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f892b9a0-e166-41f3-b2c1-ec4667a84205.png"
+      "content_item_id": "18480f0b-ba19-41c6-8c26-a0b0cd1ae8db",
+      "path": "assets/generated/18480f0b-ba19-41c6-8c26-a0b0cd1ae8db.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/18480f0b-ba19-41c6-8c26-a0b0cd1ae8db.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-04",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "960a797e-b4b2-4a92-ba7e-4acef966a233",
-      "path": "assets/generated/960a797e-b4b2-4a92-ba7e-4acef966a233.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/960a797e-b4b2-4a92-ba7e-4acef966a233.png"
+      "content_item_id": "9e1bf9ee-bd77-4c31-9ea6-1d9025a4cb3f",
+      "path": "assets/generated/9e1bf9ee-bd77-4c31-9ea6-1d9025a4cb3f.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/9e1bf9ee-bd77-4c31-9ea6-1d9025a4cb3f.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-06",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3",
-      "path": "assets/generated/fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3.png"
+      "content_item_id": "29bade14-19f8-4a47-a972-a006c77cbd62",
+      "path": "assets/generated/29bade14-19f8-4a47-a972-a006c77cbd62.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/29bade14-19f8-4a47-a972-a006c77cbd62.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-09",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "bf1c4d30-5cd3-4c3d-832e-fc56badec64a",
-      "path": "assets/generated/bf1c4d30-5cd3-4c3d-832e-fc56badec64a.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/bf1c4d30-5cd3-4c3d-832e-fc56badec64a.png"
+      "content_item_id": "d086fa15-639a-4678-a16f-c8cd0b900c9f",
+      "path": "assets/generated/d086fa15-639a-4678-a16f-c8cd0b900c9f.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d086fa15-639a-4678-a16f-c8cd0b900c9f.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-07",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "be69c50f-c51b-48bc-917c-9ec2bb6599a6",
-      "path": "assets/generated/be69c50f-c51b-48bc-917c-9ec2bb6599a6.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/be69c50f-c51b-48bc-917c-9ec2bb6599a6.png"
+      "content_item_id": "2da0cbce-e9a7-4345-823f-1741943f4bbf",
+      "path": "assets/generated/2da0cbce-e9a7-4345-823f-1741943f4bbf.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/2da0cbce-e9a7-4345-823f-1741943f4bbf.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-02",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "18894721-24e7-420c-9910-a68e6004faef",
-      "path": "assets/generated/18894721-24e7-420c-9910-a68e6004faef.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/18894721-24e7-420c-9910-a68e6004faef.png"
+      "content_item_id": "b418b87f-6c53-4b07-8b38-bdaafda9acb5",
+      "path": "assets/generated/b418b87f-6c53-4b07-8b38-bdaafda9acb5.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/b418b87f-6c53-4b07-8b38-bdaafda9acb5.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-03",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "01cacd1a-fb4a-4670-900a-ed22c9240c8f",
-      "path": "assets/generated/01cacd1a-fb4a-4670-900a-ed22c9240c8f.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/01cacd1a-fb4a-4670-900a-ed22c9240c8f.png"
+      "content_item_id": "d79a4256-521f-406c-8fd2-73cd55547c34",
+      "path": "assets/generated/d79a4256-521f-406c-8fd2-73cd55547c34.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d79a4256-521f-406c-8fd2-73cd55547c34.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-01",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "c52b419c-b053-4d14-9b6c-919360d11495",
-      "path": "assets/generated/c52b419c-b053-4d14-9b6c-919360d11495.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/c52b419c-b053-4d14-9b6c-919360d11495.png"
+      "content_item_id": "54c83aae-ff87-486c-8384-35b3d85c046c",
+      "path": "assets/generated/54c83aae-ff87-486c-8384-35b3d85c046c.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/54c83aae-ff87-486c-8384-35b3d85c046c.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-03",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "a406e933-1d9c-4432-9ca9-9e771e178266",
-      "path": "assets/generated/a406e933-1d9c-4432-9ca9-9e771e178266.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/a406e933-1d9c-4432-9ca9-9e771e178266.png"
+      "content_item_id": "725aabb5-1664-45ce-89df-5be31e914d70",
+      "path": "assets/generated/725aabb5-1664-45ce-89df-5be31e914d70.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/725aabb5-1664-45ce-89df-5be31e914d70.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-04",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "59b1cf68-af2c-42be-a070-2f3c86df1d0c",
-      "path": "assets/generated/59b1cf68-af2c-42be-a070-2f3c86df1d0c.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/59b1cf68-af2c-42be-a070-2f3c86df1d0c.png"
+      "content_item_id": "bafd275c-c280-403c-a59c-209dceeb539a",
+      "path": "assets/generated/bafd275c-c280-403c-a59c-209dceeb539a.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/bafd275c-c280-403c-a59c-209dceeb539a.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-05",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "e42ca3aa-9a5f-499a-8cef-35202462e065",
-      "path": "assets/generated/e42ca3aa-9a5f-499a-8cef-35202462e065.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e42ca3aa-9a5f-499a-8cef-35202462e065.png"
+      "content_item_id": "f2a7e8bc-a37a-43a0-9f8f-fc22fb208247",
+      "path": "assets/generated/f2a7e8bc-a37a-43a0-9f8f-fc22fb208247.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f2a7e8bc-a37a-43a0-9f8f-fc22fb208247.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-06",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "23746fbf-7859-4a38-951f-19cb2aaad99d",
-      "path": "assets/generated/23746fbf-7859-4a38-951f-19cb2aaad99d.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/23746fbf-7859-4a38-951f-19cb2aaad99d.png"
+      "content_item_id": "1e3b7cc2-1693-4ea0-9479-ad38616bee2e",
+      "path": "assets/generated/1e3b7cc2-1693-4ea0-9479-ad38616bee2e.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/1e3b7cc2-1693-4ea0-9479-ad38616bee2e.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-07",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "f2be5f8b-d6b6-44f6-89be-59e34f5d1da1",
-      "path": "assets/generated/f2be5f8b-d6b6-44f6-89be-59e34f5d1da1.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f2be5f8b-d6b6-44f6-89be-59e34f5d1da1.png"
+      "content_item_id": "ffa61623-e007-4d2b-9981-f0b92b925a51",
+      "path": "assets/generated/ffa61623-e007-4d2b-9981-f0b92b925a51.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/ffa61623-e007-4d2b-9981-f0b92b925a51.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-09",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "d5c4b06f-83a6-4332-a9e0-fd29d6d84a65",
-      "path": "assets/generated/d5c4b06f-83a6-4332-a9e0-fd29d6d84a65.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d5c4b06f-83a6-4332-a9e0-fd29d6d84a65.png"
+      "content_item_id": "dc33f59d-9fbf-42e1-a738-3d63b7ec6191",
+      "path": "assets/generated/dc33f59d-9fbf-42e1-a738-3d63b7ec6191.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/dc33f59d-9fbf-42e1-a738-3d63b7ec6191.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-06",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "0b107882-f7e6-4547-9941-7179eee629c0",
-      "path": "assets/generated/0b107882-f7e6-4547-9941-7179eee629c0.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/0b107882-f7e6-4547-9941-7179eee629c0.png"
+      "content_item_id": "2848b4b5-e293-44fe-b138-b91e78e644ab",
+      "path": "assets/generated/2848b4b5-e293-44fe-b138-b91e78e644ab.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/2848b4b5-e293-44fe-b138-b91e78e644ab.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-coffeego-ai-05",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "43f176b6-72bc-4bf3-8c2b-6eac2d883fa9",
-      "path": "assets/generated/43f176b6-72bc-4bf3-8c2b-6eac2d883fa9.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/43f176b6-72bc-4bf3-8c2b-6eac2d883fa9.png"
+      "content_item_id": "2fb23453-8080-4f89-a980-9e51c2ce1319",
+      "path": "assets/generated/2fb23453-8080-4f89-a980-9e51c2ce1319.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/2fb23453-8080-4f89-a980-9e51c2ce1319.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-cabinpilot-travel-09",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "b2ce52f3-3c9d-406f-9794-c434d0beab10",
-      "path": "assets/generated/b2ce52f3-3c9d-406f-9794-c434d0beab10.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/b2ce52f3-3c9d-406f-9794-c434d0beab10.png"
+      "content_item_id": "311739d6-9c08-4480-9ab8-d5e10788cbe3",
+      "path": "assets/generated/311739d6-9c08-4480-9ab8-d5e10788cbe3.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/311739d6-9c08-4480-9ab8-d5e10788cbe3.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-lyseis-pou-axizoun-01",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf",
-      "path": "assets/generated/6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf.png"
+      "content_item_id": "68c49dac-a298-458d-b973-b813b5d7d764",
+      "path": "assets/generated/68c49dac-a298-458d-b973-b813b5d7d764.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/68c49dac-a298-458d-b973-b813b5d7d764.png",
+      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-cabinpilot-travel-01",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "548e68a1-f554-438e-b3d3-9aa7ed69ab89",
-      "path": "assets/generated/548e68a1-f554-438e-b3d3-9aa7ed69ab89.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/548e68a1-f554-438e-b3d3-9aa7ed69ab89.png"
+      "content_item_id": "e9c6333b-690a-4fa3-acfd-f91b4e718ea9",
+      "path": "assets/generated/e9c6333b-690a-4fa3-acfd-f91b4e718ea9.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e9c6333b-690a-4fa3-acfd-f91b4e718ea9.png",
+      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-lyseis-pou-axizoun-09",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "31d3ed72-1d70-4769-9bd3-06cd749c795b",
-      "path": "assets/generated/31d3ed72-1d70-4769-9bd3-06cd749c795b.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/31d3ed72-1d70-4769-9bd3-06cd749c795b.png"
+      "content_item_id": "a02b0b92-fbb4-4b59-a360-78cff120fa10",
+      "path": "assets/generated/a02b0b92-fbb4-4b59-a360-78cff120fa10.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/a02b0b92-fbb4-4b59-a360-78cff120fa10.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-coffeego-ai-04",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     },
     {
-      "content_item_id": "e141b113-c534-47e7-9f4a-b07c7c87928d",
-      "path": "assets/generated/e141b113-c534-47e7-9f4a-b07c7c87928d.png",
-      "status": "exists",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e141b113-c534-47e7-9f4a-b07c7c87928d.png"
+      "content_item_id": "ed345fa2-ab35-4211-a610-b25165a26239",
+      "path": "assets/generated/ed345fa2-ab35-4211-a610-b25165a26239.png",
+      "status": "rendered",
+      "render_version": "opportunity-poster-v3-qr440",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/ed345fa2-ab35-4211-a610-b25165a26239.png",
+      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-coffeego-ai-03",
+      "hashtags": [],
+      "qr_modules": 49,
+      "qr_pixel_size": [
+        440,
+        440
+      ]
     }
   ]
 }
