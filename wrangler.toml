@@ -1,5 +1,5 @@
 name = "socialscheduler"
-main = "cloudflare/worker-v7.js"
+main = "cloudflare/worker-v8.js"
 compatibility_date = "2026-08-18"
 workers_dev = true
 
