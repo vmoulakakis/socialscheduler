@@ -18,6 +18,7 @@ SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_NkMSCtURWbZcA
 LIMIT = max(1, min(int(os.getenv("ASSET_LIMIT", "30")), 80))
 OUT = Path(os.getenv("ASSET_DIR", "assets/generated"))
 OUT.mkdir(parents=True, exist_ok=True)
+RENDER_VERSION = "opportunity-poster-v3-qr440"
 
 BOLD_CANDIDATES = ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"]
 REG_CANDIDATES = ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"]
@@ -97,8 +98,6 @@ def hashtags(value):
 def make_poster(row):
     cid = str(row["content_item_id"])
     dest = OUT / f"{cid}.png"
-    if dest.exists() and dest.stat().st_size > 20_000:
-        return {"content_item_id": cid, "path": str(dest), "status": "exists", "url": row.get("expected_media_url")}
 
     a, b, accent = palette(cid + str(row.get("brand_slug") or ""))
     im = gradient((1080, 1080), a, b)
@@ -131,7 +130,6 @@ def make_poster(row):
     d.rounded_rectangle((70, y, 560, y + 68), radius=28, fill=accent)
     d.text((98, y + 16), cta, font=cta_f, fill=(8, 18, 28))
 
-    # Decoder-verified full-poster QR: exact tracking URL, integer modules, no resampling.
     qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=3)
     qr.add_data(tracking); qr.make(fit=True)
     qr_im = qr.make_image(fill_color="black", back_color="white").convert("RGB")
@@ -146,7 +144,7 @@ def make_poster(row):
         d.text((850, 62), f"OPP {float(row['opportunity_score']):.1f}", font=small_f, fill=(232, 244, 250))
 
     im.save(dest, "PNG", optimize=True)
-    return {"content_item_id": cid, "path": str(dest), "status": "generated", "url": row.get("expected_media_url"), "tracking_url": tracking, "hashtags": tags, "qr_modules": qr.modules_count, "qr_pixel_size": [qr_w, qr_h]}
+    return {"content_item_id": cid, "path": str(dest), "status": "rendered", "render_version": RENDER_VERSION, "url": row.get("expected_media_url"), "tracking_url": tracking, "hashtags": tags, "qr_modules": qr.modules_count, "qr_pixel_size": [qr_w, qr_h]}
 
 
 def main():
@@ -156,9 +154,9 @@ def main():
             manifest.append(make_poster(row))
         except Exception as exc:
             manifest.append({"content_item_id": str(row.get("content_item_id")), "status": "error", "error": str(exc)[:500]})
-    payload = {"generated_at": datetime.now(timezone.utc).isoformat(), "source": "socialscheduler_public_asset_feed", "count": len(manifest), "items": manifest}
+    payload = {"generated_at": datetime.now(timezone.utc).isoformat(), "source": "socialscheduler_public_asset_feed", "render_version": RENDER_VERSION, "count": len(manifest), "items": manifest}
     (OUT / "manifest.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"rows": len(rows), "generated": sum(1 for x in manifest if x.get("status") == "generated"), "errors": sum(1 for x in manifest if x.get("status") == "error")}, ensure_ascii=False))
+    print(json.dumps({"rows": len(rows), "rendered": sum(1 for x in manifest if x.get("status") == "rendered"), "errors": sum(1 for x in manifest if x.get("status") == "error"), "render_version": RENDER_VERSION}, ensure_ascii=False))
 
 
 if __name__ == "__main__":
