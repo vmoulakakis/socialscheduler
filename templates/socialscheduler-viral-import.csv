@@ -1,0 +1,3 @@
+﻿post_id,brand,viral_message,photo_url,tags,destination_url,platforms,publish_at,objective,distribution_mode,ai_mode,cta
+EXAMPLE-001,My Brand,"One simple idea can save you time every day. Would you try it? 🚀",https://example.com/creative-001.jpg,"#SmartTips #Useful #ShareThis",https://example.com/landing-page,AUTO,AUTO,viral,max_reach,polish,See more
+EXAMPLE-002,My Brand,"Before you make your next choice, check this first. It may change the way you think about it. 👀",https://example.com/creative-002.jpg,"#Discover #Tips #WorthKnowing",,AUTO,AUTO,engagement,single_best,score,Share with someone who needs this
