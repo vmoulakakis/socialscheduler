@@ -1,2 +1,2 @@
-trigger: 2026-08-17T01:08:00+03:00
-reason: refresh verified Buffer queue while SocialMarket quality gate is repairing
+trigger: 2026-08-18T12:48:56+03:00
+reason: schedule 12 deduplicated campaign creatives and sync Buffer feedback metrics
