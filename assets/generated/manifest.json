@@ -1,247 +1,187 @@
 {
-  "generated_at": "2026-08-18T18:22:47.523298+00:00",
+  "generated_at": "2026-08-18T18:26:59.170403+00:00",
   "source": "socialscheduler_public_asset_feed",
   "count": 30,
   "items": [
     {
       "content_item_id": "7d4c64f2-581e-4156-8c12-7577958a4052",
       "path": "assets/generated/7d4c64f2-581e-4156-8c12-7577958a4052.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/7d4c64f2-581e-4156-8c12-7577958a4052.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-08",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/7d4c64f2-581e-4156-8c12-7577958a4052.png"
     },
     {
       "content_item_id": "747a0da2-48f0-4465-946a-f67f53636358",
       "path": "assets/generated/747a0da2-48f0-4465-946a-f67f53636358.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/747a0da2-48f0-4465-946a-f67f53636358.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-01",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/747a0da2-48f0-4465-946a-f67f53636358.png"
     },
     {
       "content_item_id": "8c9628de-d141-4217-8114-6a6f2a08c740",
       "path": "assets/generated/8c9628de-d141-4217-8114-6a6f2a08c740.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/8c9628de-d141-4217-8114-6a6f2a08c740.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-09",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/8c9628de-d141-4217-8114-6a6f2a08c740.png"
     },
     {
       "content_item_id": "d5589caf-e9dd-4caa-9be0-d34565732dac",
       "path": "assets/generated/d5589caf-e9dd-4caa-9be0-d34565732dac.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d5589caf-e9dd-4caa-9be0-d34565732dac.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-02",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d5589caf-e9dd-4caa-9be0-d34565732dac.png"
     },
     {
       "content_item_id": "4c7c8c5c-db40-4998-a676-b22ad820f107",
       "path": "assets/generated/4c7c8c5c-db40-4998-a676-b22ad820f107.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/4c7c8c5c-db40-4998-a676-b22ad820f107.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-05",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/4c7c8c5c-db40-4998-a676-b22ad820f107.png"
     },
     {
       "content_item_id": "f6180a61-0cca-4114-857c-17c10da2c522",
       "path": "assets/generated/f6180a61-0cca-4114-857c-17c10da2c522.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f6180a61-0cca-4114-857c-17c10da2c522.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-04",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f6180a61-0cca-4114-857c-17c10da2c522.png"
     },
     {
       "content_item_id": "807dda12-f1e0-489c-9b40-f93671fe0dc6",
       "path": "assets/generated/807dda12-f1e0-489c-9b40-f93671fe0dc6.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/807dda12-f1e0-489c-9b40-f93671fe0dc6.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-07",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/807dda12-f1e0-489c-9b40-f93671fe0dc6.png"
     },
     {
       "content_item_id": "f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3",
       "path": "assets/generated/f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-06",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f4ed9ef4-02a2-408a-b84e-1c559ac7d8f3.png"
     },
     {
       "content_item_id": "957d52c0-c965-4d51-8c2c-b7462596db74",
       "path": "assets/generated/957d52c0-c965-4d51-8c2c-b7462596db74.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/957d52c0-c965-4d51-8c2c-b7462596db74.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-eu-scout-greece-03",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/957d52c0-c965-4d51-8c2c-b7462596db74.png"
     },
     {
       "content_item_id": "f892b9a0-e166-41f3-b2c1-ec4667a84205",
       "path": "assets/generated/f892b9a0-e166-41f3-b2c1-ec4667a84205.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f892b9a0-e166-41f3-b2c1-ec4667a84205.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-09",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f892b9a0-e166-41f3-b2c1-ec4667a84205.png"
     },
     {
       "content_item_id": "960a797e-b4b2-4a92-ba7e-4acef966a233",
       "path": "assets/generated/960a797e-b4b2-4a92-ba7e-4acef966a233.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/960a797e-b4b2-4a92-ba7e-4acef966a233.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-08",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/960a797e-b4b2-4a92-ba7e-4acef966a233.png"
     },
     {
       "content_item_id": "fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3",
       "path": "assets/generated/fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-04",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/fb659bc2-3bd6-4ad1-b2c5-7dc0ac86f0e3.png"
     },
     {
       "content_item_id": "bf1c4d30-5cd3-4c3d-832e-fc56badec64a",
       "path": "assets/generated/bf1c4d30-5cd3-4c3d-832e-fc56badec64a.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/bf1c4d30-5cd3-4c3d-832e-fc56badec64a.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-06",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/bf1c4d30-5cd3-4c3d-832e-fc56badec64a.png"
     },
     {
       "content_item_id": "be69c50f-c51b-48bc-917c-9ec2bb6599a6",
       "path": "assets/generated/be69c50f-c51b-48bc-917c-9ec2bb6599a6.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/be69c50f-c51b-48bc-917c-9ec2bb6599a6.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-03",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/be69c50f-c51b-48bc-917c-9ec2bb6599a6.png"
     },
     {
       "content_item_id": "18894721-24e7-420c-9910-a68e6004faef",
       "path": "assets/generated/18894721-24e7-420c-9910-a68e6004faef.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/18894721-24e7-420c-9910-a68e6004faef.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-01",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/18894721-24e7-420c-9910-a68e6004faef.png"
     },
     {
       "content_item_id": "01cacd1a-fb4a-4670-900a-ed22c9240c8f",
       "path": "assets/generated/01cacd1a-fb4a-4670-900a-ed22c9240c8f.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/01cacd1a-fb4a-4670-900a-ed22c9240c8f.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-02",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/01cacd1a-fb4a-4670-900a-ed22c9240c8f.png"
     },
     {
       "content_item_id": "c52b419c-b053-4d14-9b6c-919360d11495",
       "path": "assets/generated/c52b419c-b053-4d14-9b6c-919360d11495.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/c52b419c-b053-4d14-9b6c-919360d11495.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-05",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/c52b419c-b053-4d14-9b6c-919360d11495.png"
     },
     {
       "content_item_id": "a406e933-1d9c-4432-9ca9-9e771e178266",
       "path": "assets/generated/a406e933-1d9c-4432-9ca9-9e771e178266.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/a406e933-1d9c-4432-9ca9-9e771e178266.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-eu-scout-greece-07",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/a406e933-1d9c-4432-9ca9-9e771e178266.png"
     },
     {
       "content_item_id": "59b1cf68-af2c-42be-a070-2f3c86df1d0c",
       "path": "assets/generated/59b1cf68-af2c-42be-a070-2f3c86df1d0c.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/59b1cf68-af2c-42be-a070-2f3c86df1d0c.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-promo-eu-scout-greece-2026-09-16",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/59b1cf68-af2c-42be-a070-2f3c86df1d0c.png"
     },
     {
       "content_item_id": "e42ca3aa-9a5f-499a-8cef-35202462e065",
       "path": "assets/generated/e42ca3aa-9a5f-499a-8cef-35202462e065.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e42ca3aa-9a5f-499a-8cef-35202462e065.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-promo-eu-scout-greece-2026-11-03",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e42ca3aa-9a5f-499a-8cef-35202462e065.png"
     },
     {
       "content_item_id": "23746fbf-7859-4a38-951f-19cb2aaad99d",
       "path": "assets/generated/23746fbf-7859-4a38-951f-19cb2aaad99d.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/23746fbf-7859-4a38-951f-19cb2aaad99d.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-promo-eu-scout-greece-2026-10-18",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/23746fbf-7859-4a38-951f-19cb2aaad99d.png"
     },
     {
       "content_item_id": "f2be5f8b-d6b6-44f6-89be-59e34f5d1da1",
       "path": "assets/generated/f2be5f8b-d6b6-44f6-89be-59e34f5d1da1.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f2be5f8b-d6b6-44f6-89be-59e34f5d1da1.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-promo-eu-scout-greece-2026-08-31",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/f2be5f8b-d6b6-44f6-89be-59e34f5d1da1.png"
     },
     {
       "content_item_id": "d5c4b06f-83a6-4332-a9e0-fd29d6d84a65",
       "path": "assets/generated/d5c4b06f-83a6-4332-a9e0-fd29d6d84a65.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d5c4b06f-83a6-4332-a9e0-fd29d6d84a65.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-promo-eu-scout-greece-2026-10-02",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/d5c4b06f-83a6-4332-a9e0-fd29d6d84a65.png"
     },
     {
       "content_item_id": "0b107882-f7e6-4547-9941-7179eee629c0",
       "path": "assets/generated/0b107882-f7e6-4547-9941-7179eee629c0.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/0b107882-f7e6-4547-9941-7179eee629c0.png",
-      "tracking_url": "https://eu-scout-greece.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-promo-eu-scout-greece-2026-11-19",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/0b107882-f7e6-4547-9941-7179eee629c0.png"
     },
     {
       "content_item_id": "43f176b6-72bc-4bf3-8c2b-6eac2d883fa9",
       "path": "assets/generated/43f176b6-72bc-4bf3-8c2b-6eac2d883fa9.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/43f176b6-72bc-4bf3-8c2b-6eac2d883fa9.png",
-      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-lyseis-pou-axizoun-02",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/43f176b6-72bc-4bf3-8c2b-6eac2d883fa9.png"
     },
     {
       "content_item_id": "b2ce52f3-3c9d-406f-9794-c434d0beab10",
       "path": "assets/generated/b2ce52f3-3c9d-406f-9794-c434d0beab10.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/b2ce52f3-3c9d-406f-9794-c434d0beab10.png",
-      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260810-cabinpilot-travel-03",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/b2ce52f3-3c9d-406f-9794-c434d0beab10.png"
     },
     {
       "content_item_id": "6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf",
       "path": "assets/generated/6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf.png",
-      "tracking_url": "https://cabinpilot-travel.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-cabinpilot-travel-02",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/6cc5a6a7-ecde-4f54-9cd2-1723ceedc5cf.png"
     },
     {
       "content_item_id": "548e68a1-f554-438e-b3d3-9aa7ed69ab89",
       "path": "assets/generated/548e68a1-f554-438e-b3d3-9aa7ed69ab89.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/548e68a1-f554-438e-b3d3-9aa7ed69ab89.png",
-      "tracking_url": "https://lyseis-pou-axizoun.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-lyseis-pou-axizoun-08",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/548e68a1-f554-438e-b3d3-9aa7ed69ab89.png"
     },
     {
       "content_item_id": "31d3ed72-1d70-4769-9bd3-06cd749c795b",
       "path": "assets/generated/31d3ed72-1d70-4769-9bd3-06cd749c795b.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/31d3ed72-1d70-4769-9bd3-06cd749c795b.png",
-      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-05",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/31d3ed72-1d70-4769-9bd3-06cd749c795b.png"
     },
     {
       "content_item_id": "e141b113-c534-47e7-9f4a-b07c7c87928d",
       "path": "assets/generated/e141b113-c534-47e7-9f4a-b07c7c87928d.png",
-      "status": "generated",
-      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e141b113-c534-47e7-9f4a-b07c7c87928d.png",
-      "tracking_url": "https://coffeego-ai.vmoulakakis.chatgpt.site/?utm_source=buffer&utm_medium=facebook&utm_campaign=site-week-20260817-coffeego-ai-02",
-      "hashtags": []
+      "status": "exists",
+      "url": "https://raw.githubusercontent.com/vmoulakakis/socialscheduler/main/assets/generated/e141b113-c534-47e7-9f4a-b07c7c87928d.png"
     }
   ]
 }
