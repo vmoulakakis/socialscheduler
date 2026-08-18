@@ -10,7 +10,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import textwrap
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -52,7 +51,6 @@ def fetch_rows():
 
 
 def palette(key: str):
-    # Deliberately restrained, deterministic palettes for visual rotation.
     palettes = [
         ((9, 23, 39), (26, 61, 88), (108, 227, 245)),
         ((22, 20, 42), (49, 43, 91), (180, 163, 255)),
@@ -123,7 +121,6 @@ def make_poster(row):
     im = gradient((1080, 1080), a, b)
     d = ImageDraw.Draw(im)
 
-    # Ambient accents.
     d.ellipse((780, -170, 1220, 270), fill=tuple(min(255, c + 12) for c in b))
     d.ellipse((-210, 760, 250, 1220), fill=tuple(max(0, c - 4) for c in b))
 
@@ -141,30 +138,26 @@ def make_poster(row):
     tracking = str(row.get("tracking_url") or "").strip()
     tags = hashtags(row.get("hashtags"))
 
-    # Header badge.
-    d.rounded_rectangle((70, 62, 70 + min(560, 28 * max(6, len(brand))), 116), radius=24, fill=(255, 255, 255, 28), outline=accent, width=2)
+    badge_w = 70 + min(560, 28 * max(6, len(brand)))
+    badge_fill = tuple(min(255, int(c * 0.75 + 28)) for c in b)
+    d.rounded_rectangle((70, 62, badge_w, 116), radius=24, fill=badge_fill, outline=accent, width=2)
     d.text((92, 73), brand.upper(), font=brand_f, fill=(245, 249, 252))
 
-    # Title.
     y = 175
-    title_lines = wrap(d, title, title_f, 870, 4)
-    for line in title_lines:
+    for line in wrap(d, title, title_f, 870, 4):
         d.text((70, y), line, font=title_f, fill=(255, 255, 255))
         y += 78
 
-    # Marketing hook/body trimmed from existing approved copy, not invented facts.
     y += 16
     hook = body.split("\n")[0][:260]
     for line in wrap(d, hook, body_f, 820, 4):
         d.text((72, y), line, font=body_f, fill=(217, 231, 241))
         y += 45
 
-    # CTA pill.
     y = min(760, max(y + 30, 590))
     d.rounded_rectangle((70, y, 660, y + 68), radius=28, fill=accent)
     d.text((98, y + 16), cta, font=cta_f, fill=(8, 18, 28))
 
-    # QR code encodes exact tracking URL.
     qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=9, border=2)
     qr.add_data(tracking)
     qr.make(fit=True)
@@ -174,11 +167,9 @@ def make_poster(row):
     d.text((70, 866), "SCAN → TRACKED LINK", font=small_f, fill=accent)
     d.text((70, 905), "Το QR οδηγεί στο πραγματικό tracking URL.", font=small_f, fill=(201, 218, 231))
 
-    # Hashtags are small supporting elements, not the main design.
     if tags:
         d.text((70, 970), "  ".join(tags[:4]), font=tag_f, fill=(228, 239, 247))
 
-    # Opportunity marker for auditability.
     score = row.get("opportunity_score")
     if score is not None:
         d.text((850, 62), f"OPP {float(score):.1f}", font=small_f, fill=(232, 244, 250))
