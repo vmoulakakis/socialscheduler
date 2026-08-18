@@ -1,0 +1,44 @@
+name: SocialScheduler Nightly Agent Skills Refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 0 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: socialscheduler-nightly-agent-skills
+  cancel-in-progress: false
+
+jobs:
+  refresh-skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: https://rpfadpdnnxequgvdcfoq.supabase.co
+      SUPABASE_ANON_KEY: sb_publishable_NkMSCtURWbZcA8MCY1H5sA_W_G10WYD
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild live operating manual
+        run: python scripts/refresh_agent_skills.py
+
+      - name: Commit refreshed master skills
+        run: |
+          if git status --porcelain -- skills/MASTER_SKILLS.md | grep -q .; then
+            git config user.name 'SocialScheduler Skill Curator'
+            git config user.email 'actions@users.noreply.github.com'
+            git add skills/MASTER_SKILLS.md
+            git commit -m 'Refresh SocialScheduler live agent skills'
+            git push
+          else
+            echo 'No skills delta to commit.'
+          fi
