@@ -1,0 +1,108 @@
+name: PostZen Orchestrated Publisher
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "PostZen publisher mode"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - dry-run
+          - live
+  schedule:
+    - cron: "27 * * * *"
+
+concurrency:
+  group: social-scheduler-publisher
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-postzen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
+      POSTZEN_API_URL: "https://api.postzen.dev"
+      POSTZEN_API_KEY: ${{ secrets.POSTZEN_API_KEY }}
+      SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+      PUBLISHER_RUNTIME_CONFIG_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publisher-runtime-config"
+      OUTBOX_HORIZON_HOURS: "72"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Load PostZen config from SocialScheduler Admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          token_json="$(curl -fsSL -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${SOCIALMARKET_OIDC_AUDIENCE}")"
+          oidc_token="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$token_json")"
+          runtime_json="$(curl -fsSL -X POST "$PUBLISHER_RUNTIME_CONFIG_URL" \
+            -H "Authorization: Bearer ${oidc_token}" \
+            -H "Content-Type: application/json" \
+            --data '{"provider_key":"postzen"}')"
+          export RUNTIME_JSON="$runtime_json"
+          python - <<'PY'
+          import json, os
+          data = json.loads(os.environ["RUNTIME_JSON"])
+          env = data.get("env") if data.get("configured") else {}
+          env = env if isinstance(env, dict) else {}
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              for key, value in env.items():
+                  if value is None:
+                      continue
+                  clean = str(value).replace("\r", " ").replace("\n", " ")
+                  handle.write(f"{key}={clean}\n")
+          print("SocialScheduler Admin PostZen config:", "loaded" if env else "not configured")
+          PY
+
+      - name: Skip safely if PostZen is not configured
+        id: config
+        shell: bash
+        run: |
+          if [ -z "$POSTZEN_API_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "PostZen is not configured; no jobs will be claimed."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Execute PostZen publisher
+        if: steps.config.outputs.configured == 'true'
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          python -m src.postzen_main --mode "$SCHEDULER_MODE" | tee artifacts/postzen-result.json
+
+      - name: Add PostZen result to summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## PostZen Orchestrated Publisher" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f artifacts/postzen-result.json ]; then
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat artifacts/postzen-result.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No PostZen execution was required." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload PostZen audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialscheduler-postzen-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 30
