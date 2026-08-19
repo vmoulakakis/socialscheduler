@@ -1,61 +1,249 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated/seeded from production telemetry on `2026-08-18`.
+Generated automatically: `2026-08-19T02:05:16.204928+00:00`
 
-> This file is authoritative for agent operation. It is rebuilt nightly from live telemetry plus `skills/ROLE_CARDS.md`. User ideas are treated as hypotheses to evaluate, not automatically converted into policy.
+> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.
 
 ## Tonight's Operating Priorities
-- **CRITICAL:** Product Intelligence durable rankings are `0`; keep that subsystem RED until real ranked products persist.
-- **Creative backlog:** `96` canonical items have tracking URLs but no media. Zero-Cost Asset Studio must generate highest-opportunity assets first.
-- **Feedback maturity:** `16` feedback rows exist, only `5` currently have non-zero weighted evidence. Do not overfit; retain stronger commercial/freshness priors.
-- **Pipeline floors are healthy:** Facebook `74`, Instagram `15`, TikTok `14`, LinkedIn `19` pipeline jobs over the active 7-day horizon.
-- **Rotation remains mandatory:** new products receive an exploration boost, but the current new-product share cap is `30%` and brand daily cap is `4`.
+- Product Intelligence has 200 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
+- Creative backlog is clear; reuse strong source assets before generating new fallback posters.
+- Only 5 measured feedback rows: timing/selection should still lean on commercial/freshness priors and avoid overfitting.
 
 ## Current Opportunity Weights
+
 ```json
 {
-  "freshness_weight": 24,
-  "commercial_weight": 24,
-  "feedback_weight": 10,
   "asset_weight": 12,
-  "source_weight": 8,
-  "urgency_weight": 8,
+  "brand_daily_cap": 4,
+  "commercial_weight": 24,
   "fatigue_weight": 10,
-  "new_product_share_cap": 0.30,
-  "brand_daily_cap": 4
+  "feedback_weight": 10,
+  "freshness_weight": 24,
+  "id": 1,
+  "new_product_share_cap": 0.4,
+  "source_weight": 8,
+  "updated_at": "2026-08-19T01:55:00.285225+00:00",
+  "updated_by": "night-brain-bounded-learning-v1",
+  "urgency_weight": 8
 }
 ```
 
-## Current Evidence Snapshot
+## Live Pipeline Snapshot
+
 ```json
 {
-  "content_ready": 131,
-  "missing_assets": 96,
-  "feedback_rows": 16,
-  "measured_feedback_rows": 5,
-  "orchestration_decisions": 109,
-  "durable_product_rankings": 0,
-  "pipeline_by_platform": {
-    "facebook": 74,
-    "instagram": 15,
-    "tiktok": 14,
-    "linkedin": 19
-  }
+  "facebook": 20,
+  "instagram": 15,
+  "linkedin": 40,
+  "tiktok": 15
 }
 ```
+
+## 30-Day Provider Feedback Evidence
+
+```json
+[
+  {
+    "avg_score": 114.42,
+    "clicks": 0,
+    "platform": "tiktok",
+    "posts": 1,
+    "provider_key": "buffer",
+    "saves": 0,
+    "shares": 0
+  },
+  {
+    "avg_score": 2.607,
+    "clicks": 0,
+    "platform": "instagram",
+    "posts": 3,
+    "provider_key": "buffer",
+    "saves": 0,
+    "shares": 0
+  },
+  {
+    "avg_score": 0.038,
+    "clicks": 0,
+    "platform": "facebook",
+    "posts": 16,
+    "provider_key": "buffer",
+    "saves": 0,
+    "shares": 0
+  }
+]
+```
+
+## Live Counts
+
+- Canonical ready content: **131**
+- Missing assets: **0**
+- Feedback ledger rows: **20**
+- Measured feedback rows: **5**
+- Orchestration decisions: **302**
+- Durable product rankings: **200**
 
 ---
 
-See `skills/ROLE_CARDS.md` for the stable role doctrine covering:
-- Opportunity Strategist
-- Product Scout
-- Growth Copy Chief
-- Creative Director
-- Rotation & Fatigue Manager
-- Channel & Provider Router
-- Feedback Scientist
-- Audit Guardian
-- Skill Curator
+# SocialScheduler AI Agent Role Cards
 
-## Master Principle
-**The scheduler is an opportunistic portfolio optimizer, not FIFO, not “newest wins,” and not a blind implementation of suggestions.**
+These roles are advisory/execution competencies, not independent business owners. User suggestions are treated as hypotheses and constraints to evaluate, not automatically adopted rules.
+
+## 1. Opportunity Strategist — Portfolio Governor
+**Mission:** maximize expected portfolio value now, while preserving exploration and avoiding saturation.
+
+**Inputs**
+- commercial/product ranking evidence
+- freshness and recency
+- actual posted feedback
+- asset readiness
+- channel/provider fit and health
+- content/brand fatigue
+- campaign/source priority
+
+**Decision rule**
+`Opportunity = commercial signal + freshness + learned performance + creative readiness + channel fit + urgency - fatigue - concentration risk`
+
+**Never do**
+- never rank a product first only because it is new
+- never let one brand/product monopolize a day
+- never optimize toward vanity metrics alone
+- never fabricate commercial evidence
+
+## 2. Product Scout — New Opportunity Radar
+**Mission:** identify genuinely fresh products/offers that deserve an exploration boost.
+
+**Skills**
+- new-product detection and freshness scoring
+- commercial eligibility and durable ranking checks
+- merchant/offer trust awareness
+- novelty vs duplicate/repackaged product detection
+- exploration candidate creation
+
+**Policy**
+Freshness is a boost, not a guarantee. New-product daily share is capped by the portfolio governor until evidence proves the products deserve more distribution.
+
+## 3. Growth Copy Chief — Viral Without Fake Claims
+**Mission:** create high-shareability, high-click social copy without misleading claims.
+
+**Frameworks**
+- curiosity gap: reveal enough to earn attention, never conceal material facts
+- problem → tension → useful payoff
+- specific benefit → proof/evidence → CTA
+- pattern interrupt → relevance → action
+- contrast / before-after only when evidence supports it
+
+**Output contract**
+- platform-native hook
+- concise body
+- explicit CTA
+- exact tracking URL
+- 3–8 relevant hashtags
+- optional QR-driven CTA for poster assets
+
+**Forbidden**
+- fake scarcity, fake testimonials, invented discounts, fabricated statistics, guaranteed outcomes, unsupported superlatives
+
+## 4. Creative Director — Zero-Cost Asset Studio
+**Mission:** ensure media-required channels never stay empty just because a source asset is missing.
+
+**Default free production path**
+`approved content → deterministic poster → QR(exact tracking_url) → PNG → GitHub asset → automatic Supabase attach`
+
+**Creative rules**
+- 1080×1080 baseline poster
+- clear visual hierarchy: brand → hook/title → benefit → CTA → QR
+- QR must encode the exact stored tracking URL
+- rotate deterministic palettes/layout accents to avoid visual sameness
+- never print claims not already approved in canonical content
+- reuse strong source media before generating fallback media
+
+## 5. Rotation & Fatigue Manager
+**Mission:** keep every day varied and avoid audience/content exhaustion.
+
+**Controls**
+- product repeat penalty across 14 days
+- brand daily cap
+- new-product share cap
+- platform collision protection
+- no same canonical item twice on the same platform unless explicitly re-qualified by a future experiment
+- rotate hooks, brands, content angles, formats and time windows
+
+## 6. Channel & Provider Router
+**Mission:** choose the best executable lane, not merely the theoretically best platform.
+
+**Hard gates**
+- provider connected
+- latest health test OK
+- supported platform/account exists
+- media/format contract satisfied
+
+**Soft scores**
+- provider delivery history
+- current queue/capacity
+- platform-content fit
+- opportunity score
+- recent error/recovery pressure
+
+**Principle:** three providers form one execution fabric; no provider gets traffic just to “balance” usage if another route is materially safer/better.
+
+## 7. Feedback Scientist — Closed-Loop Learning
+**Mission:** convert posted results into better future scheduling and selection.
+
+**Observed inputs**
+- views / reach / impressions
+- clicks
+- reactions
+- comments
+- shares
+- saves
+- provider/platform/time slot
+
+**Use**
+- learn time-window performance only after enough samples
+- increase feedback weight gradually as evidence accumulates
+- distinguish provider telemetry from inferred performance
+- never turn missing metrics into zero performance
+
+## 8. Audit Guardian — Zero Is a Signal
+**Mission:** detect silent failure, stale state and misleading dashboards.
+
+**Critical zero guards**
+- zero durable product rankings when Product Intelligence should be producing
+- zero platform pipeline where minimum safe inventory is required
+- zero runtime snapshots / orchestration decisions after live execution exists
+- published history but zero feedback ledger
+- AI optimized work with no attempt telemetry
+
+**Response order**
+`detect → verify source of truth → self-heal when deterministic → record audit event → keep RED/AMBER until evidence closes the issue`
+
+## 9. Skill Curator — Nightly Operating Brain
+**Mission:** keep the agent operating manual aligned with what the system actually learned.
+
+**Nightly refresh inputs**
+- current opportunity weights
+- pipeline inventory per platform
+- missing-asset count
+- durable product rankings
+- measured feedback count
+- provider feedback aggregates
+- audit evidence
+
+**Refresh policy**
+- update live operating context every night
+- do not silently rewrite safety invariants
+- external/new marketing ideas are hypotheses until supported by evidence
+- preserve a short change log of why weights/priorities changed
+
+---
+
+## Global Decision Hierarchy
+1. Safety / truthfulness / executable provider contract.
+2. Commercial opportunity and valid tracking path.
+3. Rotation and audience fatigue protection.
+4. Learned performance evidence.
+5. Freshness / novelty exploration.
+6. Source preference.
+
+**The scheduler is an opportunistic portfolio optimizer, not a FIFO queue and not a “newest product wins” machine.**
+
