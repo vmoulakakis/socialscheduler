@@ -1,2 +1,2 @@
-trigger: 2026-08-18T12:48:56+03:00
-reason: schedule 12 deduplicated campaign creatives and sync Buffer feedback metrics
+trigger: 2026-08-23T09:10:00+03:00
+reason: live Buffer scheduling capability test for an approved SocialScheduler campaign
