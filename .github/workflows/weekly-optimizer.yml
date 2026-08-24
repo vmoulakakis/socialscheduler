@@ -1,4 +1,4 @@
-name: Weekly Buffer Optimizer
+name: Weekly Multi-Provider Conversion Optimizer
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: weekly-buffer-optimizer
+  group: weekly-conversion-optimizer
   cancel-in-progress: false
 
 permissions:
@@ -19,19 +19,15 @@ jobs:
     timeout-minutes: 10
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      POSTZEN_API_KEY: ${{ secrets.POSTZEN_API_KEY }}
+      BRIGHTBEAN_API_KEY: ${{ secrets.BRIGHTBEAN_API_KEY }}
       SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
+      PUBLISHER_RUNTIME_CONFIG_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publisher-runtime-config"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Require Buffer API secret
-        shell: bash
-        run: |
-          if [ -z "$BUFFER_API_KEY" ]; then
-            echo "BUFFER_API_KEY GitHub Actions secret is missing."
-            exit 1
-          fi
-      - name: Pull weekly metrics and optimize
+      - name: Optimize from unified provider feedback
         run: python -m scripts.weekly_optimizer
