@@ -1,0 +1,20 @@
+{
+  "probe": "socialmarket-socialscheduler-e2e",
+  "requested_at": "2026-08-24",
+  "mode": "single-safe-test",
+  "objective": "verify creative-to-provider feedback loop without duplicate publishing",
+  "providers": ["buffer", "postzen", "brightbean"],
+  "platforms": ["facebook", "instagram", "tiktok", "linkedin"],
+  "requirements": {
+    "new_verified_candidate_only": true,
+    "creative_json": true,
+    "verified_product_image": true,
+    "platform_native_copy": true,
+    "hashtags": true,
+    "tracking_url": true,
+    "provider_ack_required": true,
+    "external_post_id_required": true,
+    "deduplicate": true,
+    "feedback_required": true
+  }
+}
