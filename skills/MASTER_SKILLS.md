@@ -1,13 +1,13 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-08-23T02:11:19.531217+00:00`
+Generated automatically: `2026-08-24T02:09:30.493864+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.
 
 ## Tonight's Operating Priorities
-- Product Intelligence has 600 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
+- Product Intelligence has 700 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
-- Measured feedback rows: 25. Continue shifting weight toward observed performance while preserving exploration.
+- Measured feedback rows: 29. Continue shifting weight toward observed performance while preserving exploration.
 
 ## Current Opportunity Weights
 
@@ -22,7 +22,7 @@ Generated automatically: `2026-08-23T02:11:19.531217+00:00`
   "id": 1,
   "new_product_share_cap": 0.45,
   "source_weight": 8,
-  "updated_at": "2026-08-23T02:00:04.031999+00:00",
+  "updated_at": "2026-08-24T02:00:03.022641+00:00",
   "updated_by": "night-brain-bounded-learning-v1",
   "urgency_weight": 8
 }
@@ -34,8 +34,8 @@ Generated automatically: `2026-08-23T02:11:19.531217+00:00`
 {
   "facebook": 12,
   "instagram": 12,
-  "linkedin": 23,
-  "tiktok": 12
+  "linkedin": 16,
+  "tiktok": 13
 }
 ```
 
@@ -44,28 +44,28 @@ Generated automatically: `2026-08-23T02:11:19.531217+00:00`
 ```json
 [
   {
-    "avg_score": 170.563,
+    "avg_score": 156.394,
     "clicks": 0,
     "platform": "tiktok",
-    "posts": 9,
+    "posts": 11,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 7.486,
+    "avg_score": 7.532,
     "clicks": 0,
     "platform": "instagram",
-    "posts": 12,
+    "posts": 14,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 0.032,
+    "avg_score": 0.03,
     "clicks": 0,
     "platform": "facebook",
-    "posts": 30,
+    "posts": 32,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
@@ -75,12 +75,12 @@ Generated automatically: `2026-08-23T02:11:19.531217+00:00`
 
 ## Live Counts
 
-- Canonical ready content: **131**
+- Canonical ready content: **132**
 - Missing assets: **0**
-- Feedback ledger rows: **51**
-- Measured feedback rows: **25**
+- Feedback ledger rows: **57**
+- Measured feedback rows: **29**
 - Orchestration decisions: **351**
-- Durable product rankings: **600**
+- Durable product rankings: **700**
 
 ---
 
