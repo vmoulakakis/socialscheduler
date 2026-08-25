@@ -17,7 +17,7 @@ class SocialMarketOutboxTests(unittest.TestCase):
         client=SocialMarketOutboxClient(endpoint="https://example.test",token_provider=lambda:"token");client.ack=Mock(return_value={"ok":True})
         counts=client.sync_scheduler_actions([{"type":"scheduled","campaign":"job-3","service":"facebook","postId":"buffer-99","dueAt":"2026-08-21T18:00:00+03:00"}])
         self.assertEqual(counts["scheduled"],1)
-        client.ack.assert_called_once_with("job-3","scheduled",external_post_id="buffer-99",scheduled_at="2026-08-21T18:00:00+03:00",metadata={"platform":"facebook","reconciled_existing":False})
+        client.ack.assert_called_once_with("job-3","scheduled",external_post_id="buffer-99",scheduled_at="2026-08-21T18:00:00+03:00",metadata={"platform":"facebook","publisher":"buffer","reconciled_existing":False})
 
     def test_existing_sent_post_is_acked_published(self):
         client=SocialMarketOutboxClient(endpoint="https://example.test",token_provider=lambda:"token");client.ack=Mock(return_value={"ok":True})
