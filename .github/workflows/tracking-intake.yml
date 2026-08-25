@@ -30,8 +30,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install asset dependency
-        run: python -m pip install --disable-pip-version-check pillow
+      - name: Install dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pytest pillow
+          python -m pip install --disable-pip-version-check -r requirements-openpost.txt
 
       - name: Normalize tracking request
         env:
