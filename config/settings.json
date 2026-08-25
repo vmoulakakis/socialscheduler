@@ -2,11 +2,11 @@
   "organization_id": "68a86463018d512de98d6315",
   "organization_name": "My Organization",
   "timezone": "Europe/Athens",
-  "queue_limit": 10,
+  "queue_limit": 30,
   "queue_limit_per_channel": 10,
   "idea_limit": 100,
   "future_horizon_days": 7,
-  "outbox_horizon_hours": 72,
+  "outbox_horizon_hours": 168,
   "weekly_target": 300,
   "channel_weekly": {
     "facebook": 120,
@@ -20,8 +20,25 @@
   "max_creates_per_run": 30,
   "buffer_api_soft_limit_30d": 2400,
   "analytics_frequency": "weekly",
-  "late_item_policy": "skip",
-  "late_item_defer_days": 0,
+  "late_item_policy": "defer",
+  "late_item_defer_days": 1,
+  "repost_policy": {
+    "enabled": true,
+    "window_days": 7,
+    "only_if_provider_allows": true,
+    "never_duplicate_active": true,
+    "require_copy_variant": true,
+    "minimum_spacing_hours": 24
+  },
+  "orchestrator": {
+    "enabled": true,
+    "strategy": "maximize_safe_fill",
+    "providers": ["buffer", "postzen", "brightbean"],
+    "failover": true,
+    "deduplicate_across_providers": true,
+    "fill_horizon_days": 7,
+    "respect_provider_limits": true
+  },
   "asset_repo": "vmoulakakis/socialscheduler",
   "asset_ref": "main",
   "protected_rules": {
