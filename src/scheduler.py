@@ -105,6 +105,64 @@ class SocialScheduler:
     def _post_key(self,p): return (p.get("channelId",""),text_hash(p.get("text","")))
     def _execution_key(self,e): return (e.channel_id,text_hash(e.text))
 
+    def _idea_exists(self, ideas: list[dict[str, Any]], execution: Execution) -> bool:
+        title = normalize_text(execution.idea_title)
+        return any(
+            normalize_text((idea.get("content") or {}).get("title", "")) == title
+            for idea in ideas
+        )
+
+    def ensure_ideas(self, executions: list[Execution], ideas: list[dict[str, Any]]) -> None:
+        """Create missing legacy Buffer ideas without exceeding the configured cap."""
+        existing_count = len(ideas)
+        seen_campaigns: set[str] = set()
+        for ex in sorted(executions, key=lambda item: item.target_at):
+            if ex.campaign_id in seen_campaigns:
+                continue
+            seen_campaigns.add(ex.campaign_id)
+            if self._idea_exists(ideas, ex):
+                continue
+            if existing_count >= int(self.settings.get("idea_limit", 100)):
+                self.actions.append({"type": "blocked", "campaign": ex.campaign_id, "reason": "idea_limit"})
+                return
+
+            source = next(item for item in self.backlog if item["id"] == ex.campaign_id)
+            content: dict[str, Any] = {
+                "title": ex.idea_title,
+                "text": source.get("idea_text") or source.get("text") or ex.text,
+                "date": iso_seconds(ex.target_at),
+                "services": source.get("services", []),
+            }
+            if ex.media_url and self._url_works(ex.media_url):
+                content["media"] = [{
+                    "url": ex.media_url,
+                    "type": "image",
+                    "alt": source.get("alt_text", ex.topic),
+                }]
+            if self.mode == "live":
+                created = self.client.create_idea(self.settings["organization_id"], content)
+                ideas.append(created)
+            self.actions.append({"type": "create_idea", "campaign": ex.campaign_id, "title": ex.idea_title})
+            existing_count += 1
+
+    @staticmethod
+    def _fair_order(executions: list[Execution]) -> list[Execution]:
+        """Round-robin brands while preserving chronological order within each brand."""
+        per_brand: dict[str, list[Execution]] = {}
+        for ex in sorted(executions, key=lambda item: (item.target_at, item.brand, item.service)):
+            per_brand.setdefault(ex.brand, []).append(ex)
+
+        ordered: list[Execution] = []
+        while any(per_brand.values()):
+            heads = sorted(
+                (items[0].target_at, brand)
+                for brand, items in per_brand.items()
+                if items
+            )
+            for _, brand in heads:
+                ordered.append(per_brand[brand].pop(0))
+        return ordered
+
     def _future_target(self,ex,now):
         if ex.target_at > now+timedelta(minutes=2): return ex.target_at
         if self.settings.get("late_item_policy","defer") != "defer": return None
