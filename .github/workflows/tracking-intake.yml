@@ -99,12 +99,16 @@ jobs:
           ASSET: ${{ steps.factory.outputs.asset_filename }}
         shell: bash
         run: |
-          gh issue comment "${{ github.event.issue.number }}" --body "Tracking intake processed ✅
-
-- Campaign ID: \`$CAMPAIGN_ID\`
-- State: \`$STATUS\`
-- Asset: \`${ASSET:-none}\`
-- Tracking URL: preserved exactly as submitted
-- Buffer scheduling: still controlled only by the Social Scheduler safety/reconciliation path
-
-Edit this issue to update the same campaign deterministically; it will not create a duplicate campaign ID."
+          body_file="$(mktemp)"
+          printf '%s\n' \
+            'Tracking intake processed ✅' \
+            '' \
+            "- Campaign ID: \`$CAMPAIGN_ID\`" \
+            "- State: \`$STATUS\`" \
+            "- Asset: \`${ASSET:-none}\`" \
+            '- Tracking URL: preserved exactly as submitted' \
+            '- Buffer scheduling: controlled by the Social Scheduler safety/reconciliation path' \
+            '' \
+            'Edit this issue to update the same campaign deterministically; it will not create a duplicate campaign ID.' \
+            > "$body_file"
+          gh issue comment "${{ github.event.issue.number }}" --body-file "$body_file"
