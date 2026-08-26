@@ -1,2 +1,2 @@
-trigger: 2026-08-23T09:10:00+03:00
-reason: live Buffer scheduling capability test for an approved SocialScheduler campaign
+trigger: 2026-08-26T09:45:00+03:00
+reason: verify fair-order recovery and refill Buffer from approved SocialMarket outbox
