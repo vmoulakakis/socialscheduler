@@ -60,6 +60,20 @@ class SchedulerTests(unittest.TestCase):
         self.assertEqual(inp["mode"], "customScheduled")
         self.assertNotIn(inp["mode"], {"shareNow", "shareNext"})
 
+    def test_fair_order_round_robins_brands_without_mutating_input(self):
+        s = SocialScheduler(FakeClient(), SETTINGS, CHANNELS, [], mode="dry-run")
+        executions = [
+            Execution("a1", "A", "T", "facebook", "fb", datetime(2099,1,1,9,0,tzinfo=ZoneInfo("Europe/Athens")), "a1", None, None, "post", "a1"),
+            Execution("a2", "A", "T", "facebook", "fb", datetime(2099,1,1,10,0,tzinfo=ZoneInfo("Europe/Athens")), "a2", None, None, "post", "a2"),
+            Execution("b1", "B", "T", "facebook", "fb", datetime(2099,1,1,9,30,tzinfo=ZoneInfo("Europe/Athens")), "b1", None, None, "post", "b1"),
+        ]
+        original = list(executions)
+
+        ordered = s._fair_order(executions)
+
+        self.assertEqual([item.campaign_id for item in ordered], ["a1", "b1", "a2"])
+        self.assertEqual(executions, original)
+
 
 if __name__ == "__main__":
     unittest.main()
