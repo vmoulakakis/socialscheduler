@@ -94,6 +94,12 @@ class BrightBeanClient:
     def me(self) -> dict[str, Any]:
         return self._request("GET", "me")
 
+    def get_post(self, post_id: str) -> dict[str, Any]:
+        post_id = str(post_id or "").strip()
+        if not post_id:
+            raise BrightBeanAPIError("BrightBean post id is required")
+        return self._request("GET", f"posts/{urllib.parse.quote(post_id, safe='')}")
+
     def list_accounts(self) -> list[dict[str, Any]]:
         result = self._request("GET", "accounts")
         return list(result.get("accounts") or [])
