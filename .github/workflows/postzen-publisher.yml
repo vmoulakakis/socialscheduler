@@ -57,11 +57,14 @@ jobs:
           data = json.loads(os.environ["RUNTIME_JSON"])
           env = data.get("env") if data.get("configured") else {}
           env = env if isinstance(env, dict) else {}
+          sensitive_markers = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               for key, value in env.items():
                   if value is None:
                       continue
                   clean = str(value).replace("\r", " ").replace("\n", " ")
+                  if clean and any(marker in key.upper() for marker in sensitive_markers):
+                      print(f"::add-mask::{clean}")
                   handle.write(f"{key}={clean}\n")
           print("SocialScheduler Admin PostZen config:", "loaded" if env else "not configured")
           PY
@@ -83,7 +86,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
-          python scripts/reconcile_provider_deliveries.py --provider postzen | tee artifacts/postzen-reconciliation.json
+          python -m scripts.reconcile_provider_deliveries --provider postzen | tee artifacts/postzen-reconciliation.json
           python -m src.postzen_main --mode "$SCHEDULER_MODE" | tee artifacts/postzen-result.json
 
       - name: Add PostZen result to summary
