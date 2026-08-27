@@ -83,6 +83,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
+          python scripts/reconcile_provider_deliveries.py --provider postzen | tee artifacts/postzen-reconciliation.json
           python -m src.postzen_main --mode "$SCHEDULER_MODE" | tee artifacts/postzen-result.json
 
       - name: Add PostZen result to summary
