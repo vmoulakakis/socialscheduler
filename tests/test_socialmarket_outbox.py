@@ -29,5 +29,11 @@ class SocialMarketOutboxTests(unittest.TestCase):
         counts=client.sync_scheduler_actions([{"type":"skip_late","campaign":"job-expired","service":"tiktok"}])
         self.assertEqual(counts["failed"],1)
 
+    def test_provider_reconciliation_uses_bounded_typed_action(self):
+        client=SocialMarketOutboxClient(endpoint="https://example.test",token_provider=lambda:"token")
+        client._post=Mock(return_value={"ok":True,"jobs":[{"history_id":"h-1"}]})
+        self.assertEqual(client.provider_reconcile_candidates("brightbean",999),[{"history_id":"h-1"}])
+        client._post.assert_called_once_with({"action":"reconcile_provider_candidates","provider_key":"brightbean","limit":500})
+
 
 if __name__=="__main__":unittest.main()
