@@ -174,6 +174,20 @@ class SocialMarketOutboxClient:
     def rebalance(self) -> dict[str, Any]:
         return dict(self._post({"action": "rebalance"}).get("result") or {})
 
+    def provider_reconcile_candidates(self, provider_key: str, limit: int = 100) -> list[dict[str, Any]]:
+        provider = provider_key.strip().lower()
+        if provider not in {"buffer", "postzen", "brightbean"}:
+            raise SocialMarketOutboxError(f"Unsupported reconciliation provider '{provider}'")
+        return list(self._post({
+            "action": "reconcile_provider_candidates",
+            "provider_key": provider,
+            "limit": max(1, min(int(limit), 500)),
+        }).get("jobs") or [])
+
+    def reconcile_provider_delivery(self, payload: dict[str, Any]) -> dict[str, Any]:
+        body = {"action": "reconcile_provider_delivery", **payload}
+        return dict(self._post(body).get("result") or {})
+
     def ack(self, job_id: str, status: str, *, external_post_id: str | None = None,
             external_permalink: str | None = None, scheduled_at: str | None = None,
             published_at: str | None = None, error: str | None = None,
