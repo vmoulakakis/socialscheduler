@@ -86,6 +86,12 @@ class BrightBeanClientTests(unittest.TestCase):
         self.assertIn("https://example.test/t", payload["caption"])
         self.assertTrue(payload["idempotency_key"].startswith("socialscheduler-job-1-"))
 
+    def test_get_post_is_read_only_and_url_safe(self):
+        client = FakeBrightBeanClient()
+        client.get_post("post id")
+        self.assertEqual(client.calls[-1]["method"], "GET")
+        self.assertEqual(client.calls[-1]["path"], "posts/post%20id")
+
     @staticmethod
     def calls_post(client):
         return next(call for call in client.calls if call.get("method") == "POST" and call.get("path") == "posts/")
