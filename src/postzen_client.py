@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from typing import Any
@@ -102,6 +103,18 @@ class PostZenClient:
             if platform:
                 platforms.add(platform)
         return platforms
+
+    def get_post(self, post_id: str) -> dict[str, Any]:
+        """Read back one provider post without mutating it.
+
+        Reconciliation remains fail-closed: callers must ignore unknown response
+        states and transport/API errors, never infer publication from elapsed time.
+        """
+        post_id = str(post_id or "").strip()
+        if not post_id:
+            raise PostZenAPIError("PostZen post id is required", status_code=422)
+        result = self._request("GET", f"/v1/posts/{urllib.parse.quote(post_id, safe='')}")
+        return result if isinstance(result, dict) else {"data": result}
 
     def resolve_account(self, platform: str) -> dict[str, Any]:
         """Resolve exactly one executable PostZen account for a platform.

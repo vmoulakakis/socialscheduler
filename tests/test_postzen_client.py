@@ -116,3 +116,10 @@ def test_extracts_current_create_response_identifiers():
         PostZenClient.extract_permalink(response)
         == "https://www.linkedin.com/feed/update/test"
     )
+
+
+def test_get_post_is_read_only_and_url_safe():
+    client = FakePostZen([account()])
+    client.get_post("post id")
+    assert client.calls[-1]["method"] == "GET"
+    assert client.calls[-1]["path"] == "/v1/posts/post%20id"

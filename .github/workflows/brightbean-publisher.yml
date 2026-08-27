@@ -88,6 +88,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
+          python scripts/reconcile_provider_deliveries.py --provider brightbean | tee artifacts/brightbean-reconciliation.json
           python -m src.brightbean_main --mode "$SCHEDULER_MODE" | tee artifacts/brightbean-result.json
 
       - name: Add BrightBean result to summary
