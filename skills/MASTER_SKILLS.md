@@ -1,16 +1,16 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-08-28T12:06:39.305653+00:00`
+Generated automatically: `2026-08-29T07:18:51.642609+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.
 
 ## Tonight's Operating Priorities
-- Product Intelligence has 1500 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
+- Product Intelligence has 1600 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
-- Measured feedback rows: 54. Continue shifting weight toward observed performance while preserving exploration.
-- Facebook pipeline 4 is below safety floor 10; refill opportunity inventory before increasing experimentation.
-- Instagram pipeline 6 is below safety floor 10; refill opportunity inventory before increasing experimentation.
-- Tiktok pipeline 6 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Measured feedback rows: 57. Continue shifting weight toward observed performance while preserving exploration.
+- Facebook pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Instagram pipeline 8 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Tiktok pipeline 8 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 
 ## Current Opportunity Weights
 
@@ -25,7 +25,7 @@ Generated automatically: `2026-08-28T12:06:39.305653+00:00`
   "id": 1,
   "new_product_share_cap": 0.45,
   "source_weight": 8,
-  "updated_at": "2026-08-28T12:00:05.379028+00:00",
+  "updated_at": "2026-08-29T07:10:03.340639+00:00",
   "updated_by": "night-brain-bounded-learning-v1",
   "urgency_weight": 8
 }
@@ -35,10 +35,10 @@ Generated automatically: `2026-08-28T12:06:39.305653+00:00`
 
 ```json
 {
-  "facebook": 4,
-  "instagram": 6,
-  "linkedin": 6,
-  "tiktok": 6
+  "facebook": 7,
+  "instagram": 8,
+  "linkedin": 7,
+  "tiktok": 8
 }
 ```
 
@@ -47,28 +47,28 @@ Generated automatically: `2026-08-28T12:06:39.305653+00:00`
 ```json
 [
   {
-    "avg_score": 143.798,
+    "avg_score": 150.003,
     "clicks": 0,
     "platform": "tiktok",
-    "posts": 19,
+    "posts": 21,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 8.085,
+    "avg_score": 9.061,
     "clicks": 0,
     "platform": "instagram",
-    "posts": 22,
+    "posts": 23,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 0.069,
+    "avg_score": 0.066,
     "clicks": 0,
     "platform": "facebook",
-    "posts": 40,
+    "posts": 42,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
@@ -77,7 +77,7 @@ Generated automatically: `2026-08-28T12:06:39.305653+00:00`
     "avg_score": 0.0,
     "clicks": 0,
     "platform": "linkedin",
-    "posts": 16,
+    "posts": 17,
     "provider_key": "brightbean",
     "saves": 0,
     "shares": 0
@@ -87,12 +87,12 @@ Generated automatically: `2026-08-28T12:06:39.305653+00:00`
 
 ## Live Counts
 
-- Canonical ready content: **379**
+- Canonical ready content: **443**
 - Missing assets: **0**
-- Feedback ledger rows: **97**
-- Measured feedback rows: **54**
+- Feedback ledger rows: **103**
+- Measured feedback rows: **57**
 - Orchestration decisions: **357**
-- Durable product rankings: **1500**
+- Durable product rankings: **1600**
 
 ---
 
