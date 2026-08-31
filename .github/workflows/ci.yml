@@ -3,6 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+    # Asset Studio generates deterministic poster files every two hours. Those
+    # commits do not change executable code/config and should not consume a full
+    # Python/OpenPost validation run. Any mixed commit that touches code/config
+    # still triggers CI normally.
+    paths-ignore:
+      - "assets/generated/**"
   pull_request:
     branches: [main]
 
