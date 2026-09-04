@@ -1,69 +1,89 @@
-# Social Scheduler — Buffer Autopilot
+# SocialScheduler — Safety-First Autonomous Publishing
 
-Safety-first, fully automated Buffer scheduler for the Aug–Nov 2026 social portfolio:
+> Execution plane for approved social publishing intent. SocialScheduler validates, deduplicates, schedules, reconciles and fails closed when media or evidence is not trustworthy enough.
 
-- CoffeeGo AI
-- CabinPilot Travel
-- CabinPilot Smart Savings
-- Λύσεις που Αξίζουν / Biz Box Solver
-- Travel AI / GreekVibes
-- Red Raven Eyewear
+**Portfolio:** https://dealora-ai.com/portfolio  
+**Upstream intelligence:** https://github.com/vmoulakakis/Socialmarket
 
-## Fast interaction — add a new tracking URL
+## System role
 
-You do not need to edit JSON manually.
+SocialScheduler is intentionally **not another content brain**. SocialMarket owns canonical intelligence, content and publishing intent; SocialScheduler owns execution.
 
-### In ChatGPT
+```text
+SocialMarket AI
+  approved publishing intent
+          ↓
+     publish.outbox
+          ↓
+   SocialScheduler
+          ↓
+validation / dedupe / timing / media gates
+          ↓
+       Buffer
+          ↓
+Instagram · Facebook · TikTok
+          ↓
+provider reconciliation / execution state
+```
 
-Use:
+This boundary prevents two independent systems from inventing campaigns, tracking URLs, merchant data or schedules.
 
-`NEW TRACKING URL: <exact URL> | BRAND: <brand> | ANGLE: <hook> | DATE: YYYY-MM-DD HH:MM | PLATFORMS: instagram,facebook,tiktok | ASSET: auto-card`
+## What runs autonomously
 
-### In GitHub
+Scheduled GitHub Actions maintain the operational loop. Depending on the active workflow/configuration, the system:
 
-Open **Issues → New issue → ➕ New Tracking URL**.
+1. authenticates to Buffer's GraphQL API;
+2. verifies the configured organization and connected channels;
+3. reads current scheduled/sending/error/sent/draft/approval state;
+4. materializes approved durable work;
+5. deduplicates against exact executions already sent or in flight;
+6. protects against early-publish failure modes;
+7. fills only safe queue capacity;
+8. rejects unsafe immediate-publish semantics for campaign backlog;
+9. blocks media-dependent platforms when assets are missing/unreachable;
+10. blocks claim-sensitive content until current facts are verified;
+11. interleaves brands so one campaign family cannot monopolize the active queue;
+12. reconciles provider state back into the execution record.
 
-The intake pipeline preserves the exact tracking URL, creates/reuses a tracking-source ID, creates one deterministic campaign, generates different copy for each selected platform, creates a unique fallback PNG when `auto-card` is selected, validates the repo, and commits the desired campaign state. Editing the same issue updates the same campaign instead of producing duplicates.
+## Fast intake contract
 
-Tracking intake never publishes directly. Buffer scheduling remains owned exclusively by the `Social Scheduler` workflow.
+For operator-driven additions, the repository supports a deterministic tracking-URL intake pattern rather than free-form campaign mutation.
 
-See `docs/INTERACTION.md` for the full contract.
+```text
+NEW TRACKING URL: <exact URL> | BRAND: <brand> | ANGLE: <hook> | DATE: YYYY-MM-DD HH:MM | PLATFORMS: instagram,facebook,tiktok | ASSET: auto-card
+```
 
-## What it does
+The intake path preserves the exact tracking URL, reuses stable identities, generates platform-specific copy/assets and updates the same campaign rather than creating uncontrolled duplicates.
 
-Every hour the GitHub Action runs the scheduler, which:
+Tracking intake never publishes directly.
 
-1. authenticates to the current Buffer GraphQL API;
-2. verifies the configured organization and all three connected channels;
-3. reads `scheduled`, `sending`, `error`, `sent`, `draft`, `needs_approval` posts and Buffer Ideas;
-4. creates missing durable Ideas from `config/backlog.json`;
-5. deduplicates against exact executions already sent/scheduled/sending;
-6. protects against the 2026-08-14 early-publish failure mode;
-7. fills only available slots in the rolling Buffer queue, never exceeding **10**;
-8. uses only `customScheduled` for campaign backlog — `shareNow` and `shareNext` are rejected;
-9. blocks Instagram/TikTok when media is missing/unreachable;
-10. blocks claim-sensitive campaigns until current facts are verified;
-11. interleaves brands so one brand does not monopolize the active queue.
+See [`docs/INTERACTION.md`](docs/INTERACTION.md).
 
-Buffer's current API is GraphQL at `https://api.buffer.com` and uses a Bearer API key.
+## Safety invariants
 
-## One-time setup
+- queue fullness never outranks correctness
+- missing/unreachable media can block execution
+- unverified sensitive claims can block execution
+- duplicate detection is deterministic
+- scheduling state is reconciled against the provider
+- execution credentials belong here, not in SocialMarket
+- real provider secrets remain in GitHub Actions/runtime secrets, never committed
 
-1. In Buffer, create an API key under **Settings → API**.
-2. In this GitHub repository, add Actions secret **`BUFFER_API_KEY`**.
-3. Upload preferred supplied creatives into `/assets`, or use the tracking intake `auto-card` fallback.
-4. Run **Actions → Social Scheduler → Run workflow → dry-run** once.
-5. If the output is clean, run `live`. The hourly schedule will then maintain the rolling queue automatically.
+## Operational docs
 
-See `docs/BUFFER_SETUP.md`, `docs/OPERATIONS.md`, `docs/MASTER_SOURCE.md`, `docs/INTERACTION.md`, and `docs/TASKS.md`.
+- [`docs/BUFFER_SETUP.md`](docs/BUFFER_SETUP.md)
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
+- [`docs/MASTER_SOURCE.md`](docs/MASTER_SOURCE.md)
+- [`docs/INTERACTION.md`](docs/INTERACTION.md)
+- [`docs/TASKS.md`](docs/TASKS.md)
 
-## Local test
+## Local validation
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## Local dry-run/live
+## Local dry-run / live
 
 ```bash
 export BUFFER_API_KEY='...'
@@ -71,6 +91,13 @@ python -m src.main --mode dry-run
 python -m src.main --mode live
 ```
 
-## Safety note
+## Portfolio context
 
-Queue fullness is never prioritized over correctness. If media or fresh verification is unavailable, the scheduler leaves capacity unused rather than publishing unsafe or malformed content.
+| System | Responsibility |
+| --- | --- |
+| [SocialMarket AI](https://github.com/vmoulakakis/Socialmarket) | evidence, opportunity, content and canonical intent |
+| [Dealora](https://dealora-ai.com) | consumer buying decisions |
+| [AI Greece Travel](https://github.com/vmoulakakis/travel_ai) | destination decisions |
+| **SocialScheduler** | safe autonomous execution |
+
+The engineering goal is not maximum posting volume. It is **reliable execution of already-approved intent with explicit failure gates**.
