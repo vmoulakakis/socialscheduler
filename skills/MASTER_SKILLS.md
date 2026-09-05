@@ -1,15 +1,15 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-09-04T05:00:46.052094+00:00`
+Generated automatically: `2026-09-05T04:53:34.264905+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.
 
 ## Tonight's Operating Priorities
-- Product Intelligence has 2300 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
+- Product Intelligence has 2400 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
 - Measured feedback rows: 76. Continue shifting weight toward observed performance while preserving exploration.
 - Facebook pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
-- Instagram pipeline 4 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Instagram pipeline 5 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 - Tiktok pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 
 ## Current Opportunity Weights
@@ -25,7 +25,7 @@ Generated automatically: `2026-09-04T05:00:46.052094+00:00`
   "id": 1,
   "new_product_share_cap": 0.45,
   "source_weight": 8,
-  "updated_at": "2026-09-04T05:00:07.24062+00:00",
+  "updated_at": "2026-09-05T04:40:02.508073+00:00",
   "updated_by": "night-brain-bounded-learning-v1",
   "urgency_weight": 8
 }
@@ -36,7 +36,7 @@ Generated automatically: `2026-09-04T05:00:46.052094+00:00`
 ```json
 {
   "facebook": 7,
-  "instagram": 4,
+  "instagram": 5,
   "linkedin": 7,
   "tiktok": 7
 }
@@ -47,16 +47,16 @@ Generated automatically: `2026-09-04T05:00:46.052094+00:00`
 ```json
 [
   {
-    "avg_score": 162.409,
+    "avg_score": 159.151,
     "clicks": 0,
     "platform": "tiktok",
-    "posts": 23,
+    "posts": 24,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 10.49,
+    "avg_score": 10.553,
     "clicks": 0,
     "platform": "instagram",
     "posts": 31,
@@ -65,10 +65,10 @@ Generated automatically: `2026-09-04T05:00:46.052094+00:00`
     "shares": 0
   },
   {
-    "avg_score": 0.103,
+    "avg_score": 0.101,
     "clicks": 0,
     "platform": "facebook",
-    "posts": 49,
+    "posts": 50,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
@@ -77,7 +77,7 @@ Generated automatically: `2026-09-04T05:00:46.052094+00:00`
     "avg_score": 0.0,
     "clicks": 0,
     "platform": "linkedin",
-    "posts": 21,
+    "posts": 22,
     "provider_key": "brightbean",
     "saves": 0,
     "shares": 0
@@ -87,12 +87,12 @@ Generated automatically: `2026-09-04T05:00:46.052094+00:00`
 
 ## Live Counts
 
-- Canonical ready content: **849**
+- Canonical ready content: **909**
 - Missing assets: **0**
-- Feedback ledger rows: **124**
+- Feedback ledger rows: **127**
 - Measured feedback rows: **76**
 - Orchestration decisions: **357**
-- Durable product rankings: **2300**
+- Durable product rankings: **2400**
 
 ---
 
