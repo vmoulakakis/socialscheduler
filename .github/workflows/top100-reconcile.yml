@@ -1,0 +1,58 @@
+name: SocialScheduler Top100 Reconcile
+
+on:
+  schedule:
+    - cron: "42 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: socialscheduler-top100-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TOP100_RECONCILE_URL: ${{ secrets.TOP100_RECONCILE_URL }}
+      TOP100_RECONCILE_TOKEN: ${{ secrets.TOP100_RECONCILE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect available provider truth
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          # The helper is deliberately ACK-only. It never publishes or recreates posts.
+          inputs=()
+          for f in artifacts/scheduler-result.json artifacts/metrics-sync.json artifacts/dashboard-build.json artifacts/buffer-snapshot.json; do
+            if [ -f "$f" ]; then inputs+=(--input "$f"); fi
+          done
+          python scripts/top100_publish_reconcile.py "${inputs[@]}" --output artifacts/top100-published.json
+
+      - name: Send provider-confirmed publication state to SocialMarket
+        if: env.TOP100_RECONCILE_URL != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          auth=()
+          if [ -n "${TOP100_RECONCILE_TOKEN:-}" ]; then
+            auth=(-H "Authorization: Bearer ${TOP100_RECONCILE_TOKEN}")
+          fi
+          curl -fsSL -X POST "${auth[@]}" \
+            -H 'Content-Type: application/json' \
+            --data-binary @artifacts/top100-published.json \
+            "$TOP100_RECONCILE_URL"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: socialscheduler-top100-reconcile-${{ github.run_number }}
+          path: artifacts/top100-published.json
+          retention-days: 30
