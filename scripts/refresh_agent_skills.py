@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild skills/MASTER_SKILLS.md from stable role cards + safe live telemetry snapshot."""
+"""Rebuild skills/MASTER_SKILLS.md from stable role cards + freshness-checked public telemetry."""
 from __future__ import annotations
 
 import json
@@ -16,7 +16,14 @@ MASTER = Path("skills/MASTER_SKILLS.md")
 
 def fetch_context():
     url = f"{SUPABASE_URL}/rest/v1/socialscheduler_public_agent_context?select=*&id=eq.1&limit=1"
-    req = urllib.request.Request(url, headers={"apikey": SUPABASE_ANON_KEY, "authorization": f"Bearer {SUPABASE_ANON_KEY}", "accept": "application/json"})
+    req = urllib.request.Request(
+        url,
+        headers={
+            "apikey": SUPABASE_ANON_KEY,
+            "authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "accept": "application/json",
+        },
+    )
     with urllib.request.urlopen(req, timeout=30) as r:
         rows = json.loads(r.read().decode("utf-8"))
     return rows[0] if rows else {}
@@ -24,29 +31,55 @@ def fetch_context():
 
 def priorities(c):
     out = []
+    stale_sources = [str(x) for x in (c.get("stale_sources") or [])]
+    if c.get("is_stale"):
+        out.append(
+            "CRITICAL — live operating context has stale sources: "
+            + ", ".join(stale_sources)
+            + ". Do not infer health or change strategy from those sources until freshness is restored."
+        )
+
     rankings = int(c.get("durable_product_rankings") or 0)
     assets = int(c.get("missing_assets") or 0)
     measured = int(c.get("measured_feedback_rows") or 0)
     pipeline = c.get("pipeline_by_platform") or {}
+
     if rankings == 0:
-        out.append("CRITICAL — Product Intelligence durable rankings are still zero; keep product-ranking status RED and use existing canonical inventory without pretending ranked-product evidence exists.")
+        out.append(
+            "CRITICAL — Product Intelligence durable rankings are zero; keep product-ranking status RED and use existing canonical inventory without pretending ranked-product evidence exists."
+        )
     else:
-        out.append(f"Product Intelligence has {rankings} durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.")
+        out.append(
+            f"Product Intelligence has {rankings} durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place."
+        )
+
     if assets > 0:
-        out.append(f"Creative backlog: {assets} canonical items are missing media; Asset Studio should prioritize the highest opportunity scores first.")
+        out.append(
+            f"Creative backlog: {assets} canonical items are missing media; Asset Studio should prioritize the highest opportunity scores first."
+        )
     else:
         out.append("Creative backlog is clear; reuse strong source assets before generating new fallback posters.")
+
     if measured < 20:
-        out.append(f"Only {measured} measured feedback rows: timing/selection should still lean on commercial/freshness priors and avoid overfitting.")
+        out.append(
+            f"Only {measured} measured feedback rows: timing/selection should still lean on commercial/freshness priors and avoid overfitting."
+        )
     elif measured < 100:
-        out.append(f"Measured feedback rows: {measured}. Continue shifting weight toward observed performance while preserving exploration.")
+        out.append(
+            f"Measured feedback rows: {measured}. Continue shifting weight toward observed performance while preserving exploration."
+        )
     else:
-        out.append(f"Measured feedback rows: {measured}. Feedback is mature enough to carry major selection/timing weight, with exploration still capped.")
+        out.append(
+            f"Measured feedback rows: {measured}. Feedback is mature enough to carry major selection/timing weight, with exploration still capped."
+        )
+
     for p in ("facebook", "instagram", "tiktok", "linkedin"):
         n = int(pipeline.get(p) or 0)
         floor = 3 if p == "linkedin" else 10
         if n < floor:
-            out.append(f"{p.title()} pipeline {n} is below safety floor {floor}; refill opportunity inventory before increasing experimentation.")
+            out.append(
+                f"{p.title()} pipeline {n} is below safety floor {floor}; refill opportunity inventory before increasing experimentation."
+            )
     return out
 
 
@@ -57,18 +90,33 @@ def main():
     p = priorities(context)
     weights = context.get("opportunity_weights") or {}
     feedback = context.get("provider_feedback_30d") or []
+    freshness = context.get("source_freshness") or {}
+    stale_sources = context.get("stale_sources") or []
+    fresh_decisions = int(context.get("orchestration_decisions") or 0)
+    total_decisions = int(context.get("orchestration_decisions_total") or fresh_decisions)
 
     lines = [
         "# SocialScheduler MASTER SKILLS — Live Operating Manual",
         "",
         f"Generated automatically: `{now}`",
         "",
-        "> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.",
+        "> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.",
+        "",
+        "## Freshness Guard",
+        "",
+        f"- Overall live-context stale: **{'YES' if context.get('is_stale') else 'NO'}**",
+        f"- Stale sources: **{', '.join(stale_sources) if stale_sources else 'none'}**",
+        f"- Freshness policy: **{context.get('freshness_policy') or 'unknown'}**",
+        "",
+        "```json",
+        json.dumps(freshness, ensure_ascii=False, indent=2, sort_keys=True),
+        "```",
         "",
         "## Tonight's Operating Priorities",
     ]
     for x in p:
         lines.append(f"- {x}")
+
     lines += [
         "",
         "## Current Opportunity Weights",
@@ -95,7 +143,8 @@ def main():
         f"- Missing assets: **{int(context.get('missing_assets') or 0)}**",
         f"- Feedback ledger rows: **{int(context.get('feedback_rows') or 0)}**",
         f"- Measured feedback rows: **{int(context.get('measured_feedback_rows') or 0)}**",
-        f"- Orchestration decisions: **{int(context.get('orchestration_decisions') or 0)}**",
+        f"- Fresh active orchestration decisions (24h): **{fresh_decisions}**",
+        f"- Historical orchestration-decision rows: **{total_decisions}**",
         f"- Durable product rankings: **{int(context.get('durable_product_rankings') or 0)}**",
         "",
         "---",
@@ -103,9 +152,24 @@ def main():
         role_text,
         "",
     ]
+
     MASTER.parent.mkdir(parents=True, exist_ok=True)
     MASTER.write_text("\n".join(lines), encoding="utf-8")
-    print(json.dumps({"ok": True, "master": str(MASTER), "priorities": len(p), "generated_at": now}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "master": str(MASTER),
+                "priorities": len(p),
+                "generated_at": now,
+                "is_stale": bool(context.get("is_stale")),
+                "stale_sources": stale_sources,
+                "fresh_orchestration_decisions": fresh_decisions,
+                "historical_orchestration_decisions": total_decisions,
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":
