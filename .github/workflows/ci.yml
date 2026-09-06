@@ -3,6 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+    # Asset Studio generates deterministic poster files every two hours. Those
+    # commits do not change executable code/config and should not consume a full
+    # Python/OpenPost validation run. Any mixed commit that touches code/config
+    # still triggers CI normally.
+    paths-ignore:
+      - "assets/generated/**"
   pull_request:
     branches: [main]
 
@@ -18,8 +24,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install OpenPost media dependency
-        run: python -m pip install --disable-pip-version-check -r requirements-openpost.txt
+      - name: Install test, OpenPost and asset dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check -r requirements-openpost.txt
+          python -m pip install --disable-pip-version-check -r requirements-assets.txt
       - name: Compile Python
         run: python -m py_compile src/*.py scripts/*.py tests/*.py
       - name: Validate JSON config
