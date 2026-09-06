@@ -33,8 +33,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install free media tooling
-        run: pip install 'Pillow>=11,<13' 'qrcode[pil]>=8,<9'
+      - name: Install pinned free media tooling
+        run: |
+          python -m pip install --disable-pip-version-check 'Pillow==12.3.0' 'qrcode[pil]==8.2'
+          python -m pip freeze | sort > /tmp/asset-studio-installed.txt
 
       - name: Generate missing posters + QR assets
         run: python scripts/generate_missing_assets_v2.py
