@@ -1,15 +1,56 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-09-06T05:01:05.060184+00:00`
+Generated automatically: `2026-09-07T05:08:58.457219+00:00`
 
-> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; the operating context comes from a deliberately minimal public telemetry snapshot. User ideas are evaluated as hypotheses, not copied into policy automatically.
+> This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.
+
+## Freshness Guard
+
+- Overall live-context stale: **YES**
+- Stale sources: **provider_runtime_snapshots, orchestration_decisions**
+- Freshness policy: **agent-context-freshness-v6**
+
+```json
+{
+  "checked_at": "2026-09-07T05:08:00.098679+00:00",
+  "orchestration_decisions": {
+    "fresh_active_count": 0,
+    "latest_at": null,
+    "max_age_seconds": 86400,
+    "stale": true,
+    "total_count": 0
+  },
+  "policy": "agent-context-freshness-v6",
+  "product_rankings": {
+    "latest_at": "2026-09-06T01:09:48.794233+00:00",
+    "max_age_seconds": 129600,
+    "stale": false
+  },
+  "provider_feedback": {
+    "latest_at": "2026-09-07T05:01:01.954306+00:00",
+    "max_age_seconds": 21600,
+    "stale": false
+  },
+  "provider_runtime_snapshots": {
+    "latest_at": "2026-08-26T06:54:25.685562+00:00",
+    "max_age_seconds": 900,
+    "stale": true
+  },
+  "publishing_outbox": {
+    "latest_at": "2026-09-07T05:07:00.230566+00:00",
+    "max_age_seconds": 7200,
+    "stale": false
+  }
+}
+```
 
 ## Tonight's Operating Priorities
+- CRITICAL — live operating context has stale sources: provider_runtime_snapshots, orchestration_decisions. Do not infer health or change strategy from those sources until freshness is restored.
 - Product Intelligence has 2500 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
-- Measured feedback rows: 77. Continue shifting weight toward observed performance while preserving exploration.
+- Measured feedback rows: 78. Continue shifting weight toward observed performance while preserving exploration.
 - Facebook pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
-- Instagram pipeline 6 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Instagram pipeline 8 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 - Tiktok pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 
 ## Current Opportunity Weights
@@ -25,7 +66,7 @@ Generated automatically: `2026-09-06T05:01:05.060184+00:00`
   "id": 1,
   "new_product_share_cap": 0.45,
   "source_weight": 8,
-  "updated_at": "2026-09-06T05:00:06.02093+00:00",
+  "updated_at": "2026-09-07T05:01:01.923995+00:00",
   "updated_by": "night-brain-bounded-learning-v1",
   "urgency_weight": 8
 }
@@ -36,7 +77,7 @@ Generated automatically: `2026-09-06T05:01:05.060184+00:00`
 ```json
 {
   "facebook": 7,
-  "instagram": 6,
+  "instagram": 8,
   "linkedin": 7,
   "tiktok": 7
 }
@@ -47,16 +88,16 @@ Generated automatically: `2026-09-06T05:01:05.060184+00:00`
 ```json
 [
   {
-    "avg_score": 154.823,
+    "avg_score": 154.012,
     "clicks": 0,
     "platform": "tiktok",
-    "posts": 25,
+    "posts": 26,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 10.701,
+    "avg_score": 10.873,
     "clicks": 0,
     "platform": "instagram",
     "posts": 31,
@@ -65,19 +106,19 @@ Generated automatically: `2026-09-06T05:01:05.060184+00:00`
     "shares": 0
   },
   {
-    "avg_score": 0.099,
+    "avg_score": 0.232,
     "clicks": 0,
     "platform": "facebook",
-    "posts": 51,
+    "posts": 52,
     "provider_key": "buffer",
     "saves": 0,
-    "shares": 0
+    "shares": 1
   },
   {
     "avg_score": 0.0,
     "clicks": 0,
     "platform": "linkedin",
-    "posts": 23,
+    "posts": 24,
     "provider_key": "brightbean",
     "saves": 0,
     "shares": 0
@@ -89,9 +130,10 @@ Generated automatically: `2026-09-06T05:01:05.060184+00:00`
 
 - Canonical ready content: **969**
 - Missing assets: **0**
-- Feedback ledger rows: **130**
-- Measured feedback rows: **77**
-- Orchestration decisions: **357**
+- Feedback ledger rows: **133**
+- Measured feedback rows: **78**
+- Fresh active orchestration decisions (24h): **0**
+- Historical orchestration-decision rows: **0**
 - Durable product rankings: **2500**
 
 ---
