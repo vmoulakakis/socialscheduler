@@ -1,6 +1,6 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-09-07T05:08:58.457219+00:00`
+Generated automatically: `2026-09-08T05:07:18.507486+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.
 
@@ -12,7 +12,7 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
 
 ```json
 {
-  "checked_at": "2026-09-07T05:08:00.098679+00:00",
+  "checked_at": "2026-09-08T05:05:01.359257+00:00",
   "orchestration_decisions": {
     "fresh_active_count": 0,
     "latest_at": null,
@@ -22,12 +22,12 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
   },
   "policy": "agent-context-freshness-v6",
   "product_rankings": {
-    "latest_at": "2026-09-06T01:09:48.794233+00:00",
+    "latest_at": "2026-09-08T02:51:33.96596+00:00",
     "max_age_seconds": 129600,
     "stale": false
   },
   "provider_feedback": {
-    "latest_at": "2026-09-07T05:01:01.954306+00:00",
+    "latest_at": "2026-09-08T05:01:01.15642+00:00",
     "max_age_seconds": 21600,
     "stale": false
   },
@@ -37,7 +37,7 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
     "stale": true
   },
   "publishing_outbox": {
-    "latest_at": "2026-09-07T05:07:00.230566+00:00",
+    "latest_at": "2026-09-08T05:04:00.623253+00:00",
     "max_age_seconds": 7200,
     "stale": false
   }
@@ -46,9 +46,9 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
 
 ## Tonight's Operating Priorities
 - CRITICAL — live operating context has stale sources: provider_runtime_snapshots, orchestration_decisions. Do not infer health or change strategy from those sources until freshness is restored.
-- Product Intelligence has 2500 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
+- Product Intelligence has 2700 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
-- Measured feedback rows: 78. Continue shifting weight toward observed performance while preserving exploration.
+- Measured feedback rows: 88. Continue shifting weight toward observed performance while preserving exploration.
 - Facebook pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 - Instagram pipeline 8 is below safety floor 10; refill opportunity inventory before increasing experimentation.
 - Tiktok pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
@@ -66,7 +66,7 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
   "id": 1,
   "new_product_share_cap": 0.45,
   "source_weight": 8,
-  "updated_at": "2026-09-07T05:01:01.923995+00:00",
+  "updated_at": "2026-09-08T05:01:01.108631+00:00",
   "updated_by": "night-brain-bounded-learning-v1",
   "urgency_weight": 8
 }
@@ -88,28 +88,28 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
 ```json
 [
   {
-    "avg_score": 154.012,
+    "avg_score": 159.17,
     "clicks": 0,
     "platform": "tiktok",
-    "posts": 26,
+    "posts": 27,
     "provider_key": "buffer",
     "saves": 0,
-    "shares": 0
+    "shares": 1
   },
   {
-    "avg_score": 10.873,
+    "avg_score": 10.666,
     "clicks": 0,
     "platform": "instagram",
-    "posts": 31,
+    "posts": 32,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 0
   },
   {
-    "avg_score": 0.232,
+    "avg_score": 0.243,
     "clicks": 0,
     "platform": "facebook",
-    "posts": 52,
+    "posts": 53,
     "provider_key": "buffer",
     "saves": 0,
     "shares": 1
@@ -118,7 +118,7 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
     "avg_score": 0.0,
     "clicks": 0,
     "platform": "linkedin",
-    "posts": 24,
+    "posts": 25,
     "provider_key": "brightbean",
     "saves": 0,
     "shares": 0
@@ -128,13 +128,13 @@ Generated automatically: `2026-09-07T05:08:58.457219+00:00`
 
 ## Live Counts
 
-- Canonical ready content: **969**
+- Canonical ready content: **1117**
 - Missing assets: **0**
-- Feedback ledger rows: **133**
-- Measured feedback rows: **78**
+- Feedback ledger rows: **137**
+- Measured feedback rows: **88**
 - Fresh active orchestration decisions (24h): **0**
 - Historical orchestration-decision rows: **0**
-- Durable product rankings: **2500**
+- Durable product rankings: **2700**
 
 ---
 
