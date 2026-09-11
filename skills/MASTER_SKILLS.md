@@ -1,6 +1,6 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-09-10T05:09:14.422062+00:00`
+Generated automatically: `2026-09-11T05:07:16.898621+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.
 
@@ -12,7 +12,7 @@ Generated automatically: `2026-09-10T05:09:14.422062+00:00`
 
 ```json
 {
-  "checked_at": "2026-09-10T05:08:00.045738+00:00",
+  "checked_at": "2026-09-10T05:38:00.020325+00:00",
   "orchestration_decisions": {
     "fresh_active_count": 0,
     "latest_at": null,
@@ -27,7 +27,7 @@ Generated automatically: `2026-09-10T05:09:14.422062+00:00`
     "stale": false
   },
   "provider_feedback": {
-    "latest_at": "2026-09-10T05:01:03.054015+00:00",
+    "latest_at": "2026-09-10T05:31:01.769056+00:00",
     "max_age_seconds": 21600,
     "stale": false
   },
@@ -37,7 +37,7 @@ Generated automatically: `2026-09-10T05:09:14.422062+00:00`
     "stale": true
   },
   "publishing_outbox": {
-    "latest_at": "2026-09-10T05:07:00.21038+00:00",
+    "latest_at": "2026-09-10T05:37:00.07577+00:00",
     "max_age_seconds": 7200,
     "stale": false
   }
@@ -66,7 +66,7 @@ Generated automatically: `2026-09-10T05:09:14.422062+00:00`
   "id": 1,
   "new_product_share_cap": 0.45,
   "source_weight": 8,
-  "updated_at": "2026-09-10T05:01:03.025659+00:00",
+  "updated_at": "2026-09-10T05:31:01.692717+00:00",
   "updated_by": "night-brain-bounded-learning-v1",
   "urgency_weight": 8
 }
