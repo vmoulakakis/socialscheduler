@@ -1,2 +1,2 @@
-trigger: 2026-08-26T09:45:00+03:00
-reason: verify fair-order recovery and refill Buffer from approved SocialMarket outbox
+trigger: 2026-09-15T12:55:00+03:00
+reason: production-path smoke after migration from deleted legacy Supabase to canonical VMDB outbox
