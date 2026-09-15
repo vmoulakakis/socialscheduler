@@ -31,7 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
+      # Scheduled runs are live. Push-triggered smoke runs are always dry-run.
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || github.event_name == 'schedule' && 'live' || 'dry-run' }}
       POSTZEN_API_URL: "https://api.postzen.dev"
       POSTZEN_API_KEY: ${{ secrets.POSTZEN_API_KEY }}
       SOCIALMARKET_OUTBOX_URL: "https://gqpbskssrvpfjtujwezc.supabase.co/functions/v1/publishing-outbox"
