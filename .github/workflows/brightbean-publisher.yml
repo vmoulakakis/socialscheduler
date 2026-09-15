@@ -35,9 +35,8 @@ jobs:
       BRIGHTBEAN_ACCOUNT_FACEBOOK: ${{ vars.BRIGHTBEAN_ACCOUNT_FACEBOOK }}
       BRIGHTBEAN_ACCOUNT_INSTAGRAM: ${{ vars.BRIGHTBEAN_ACCOUNT_INSTAGRAM }}
       BRIGHTBEAN_ACCOUNT_TIKTOK: ${{ vars.BRIGHTBEAN_ACCOUNT_TIKTOK }}
-      SOCIALMARKET_OUTBOX_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publishing-outbox"
+      SOCIALMARKET_OUTBOX_URL: "https://gqpbskssrvpfjtujwezc.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
-      PUBLISHER_RUNTIME_CONFIG_URL: "https://rpfadpdnnxequgvdcfoq.supabase.co/functions/v1/publisher-runtime-config"
       OUTBOX_HORIZON_HOURS: "72"
     steps:
       - uses: actions/checkout@v4
@@ -45,34 +44,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Load BrightBean config from SocialScheduler Admin
-        shell: bash
-        run: |
-          set -euo pipefail
-          token_json="$(curl -fsSL -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${SOCIALMARKET_OIDC_AUDIENCE}")"
-          oidc_token="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$token_json")"
-          runtime_json="$(curl -fsSL -X POST "$PUBLISHER_RUNTIME_CONFIG_URL" \
-            -H "Authorization: Bearer ${oidc_token}" \
-            -H "Content-Type: application/json" \
-            --data '{"provider_key":"brightbean"}')"
-          export RUNTIME_JSON="$runtime_json"
-          python - <<'PY'
-          import json, os
-          data = json.loads(os.environ["RUNTIME_JSON"])
-          env = data.get("env") if data.get("configured") else {}
-          env = env if isinstance(env, dict) else {}
-          sensitive_markers = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-              for key, value in env.items():
-                  if value is None:
-                      continue
-                  clean = str(value).replace("\r", " ").replace("\n", " ")
-                  if clean and any(marker in key.upper() for marker in sensitive_markers):
-                      print(f"::add-mask::{clean}")
-                  handle.write(f"{key}={clean}\n")
-          print("SocialScheduler Admin BrightBean config:", "loaded" if env else "not configured")
-          PY
 
       - name: Detect BrightBean configuration
         id: config
