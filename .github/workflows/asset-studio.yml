@@ -21,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      SUPABASE_URL: https://rpfadpdnnxequgvdcfoq.supabase.co
-      SUPABASE_ANON_KEY: sb_publishable_NkMSCtURWbZcA8MCY1H5sA_W_G10WYD
+      SUPABASE_URL: https://gqpbskssrvpfjtujwezc.supabase.co
+      SUPABASE_ANON_KEY: sb_publishable_Kcat2PHVjGn32ubiefotfA_iJjCU-B2
       ASSET_LIMIT: '30'
     steps:
       - uses: actions/checkout@v4
