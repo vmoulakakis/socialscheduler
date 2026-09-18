@@ -8,8 +8,8 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://rpfadpdnnxequgvdcfoq.supabase.co").rstrip("/")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_NkMSCtURWbZcA8MCY1H5sA_W_G10WYD")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gqpbskssrvpfjtujwezc.supabase.co").rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_Kcat2PHVjGn32ubiefotfA_iJjCU-B2")
 ROLE_CARDS = Path("skills/ROLE_CARDS.md")
 MASTER = Path("skills/MASTER_SKILLS.md")
 
