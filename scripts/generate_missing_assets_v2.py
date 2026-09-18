@@ -13,8 +13,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import qrcode
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://rpfadpdnnxequgvdcfoq.supabase.co").rstrip("/")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_NkMSCtURWbZcA8MCY1H5sA_W_G10WYD")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gqpbskssrvpfjtujwezc.supabase.co").rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_Kcat2PHVjGn32ubiefotfA_iJjCU-B2")
 LIMIT = max(1, min(int(os.getenv("ASSET_LIMIT", "30")), 80))
 OUT = Path(os.getenv("ASSET_DIR", "assets/generated"))
 OUT.mkdir(parents=True, exist_ok=True)
@@ -154,7 +154,7 @@ def main():
             manifest.append(make_poster(row))
         except Exception as exc:
             manifest.append({"content_item_id": str(row.get("content_item_id")), "status": "error", "error": str(exc)[:500]})
-    payload = {"generated_at": datetime.now(timezone.utc).isoformat(), "source": "socialscheduler_public_asset_feed", "render_version": RENDER_VERSION, "count": len(manifest), "items": manifest}
+    payload = {"generated_at": datetime.now(timezone.utc).isoformat(), "source": "consolidated-vmdb/socialscheduler_public_asset_feed", "render_version": RENDER_VERSION, "count": len(manifest), "items": manifest}
     (OUT / "manifest.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"rows": len(rows), "rendered": sum(1 for x in manifest if x.get("status") == "rendered"), "errors": sum(1 for x in manifest if x.get("status") == "error"), "render_version": RENDER_VERSION}, ensure_ascii=False))
 
