@@ -1,140 +1,60 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-09-13T05:17:48.005548+00:00`
+Generated automatically: `2026-09-19T04:57:34.644690+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.
 
 ## Freshness Guard
 
 - Overall live-context stale: **YES**
-- Stale sources: **provider_runtime_snapshots, orchestration_decisions**
-- Freshness policy: **agent-context-freshness-v6**
+- Stale sources: **social_publishing_outbox, product_selection_1000, social_distribution_metrics**
+- Freshness policy: **No source may drive autonomous strategy when its latest durable observation is outside the declared freshness window.**
 
 ```json
 {
-  "checked_at": "2026-09-10T05:38:00.020325+00:00",
-  "orchestration_decisions": {
-    "fresh_active_count": 0,
-    "latest_at": null,
-    "max_age_seconds": 86400,
-    "stale": true,
-    "total_count": 0
-  },
-  "policy": "agent-context-freshness-v6",
-  "product_rankings": {
-    "latest_at": "2026-09-10T01:31:22.619448+00:00",
-    "max_age_seconds": 129600,
-    "stale": false
-  },
-  "provider_feedback": {
-    "latest_at": "2026-09-10T05:31:01.769056+00:00",
-    "max_age_seconds": 21600,
-    "stale": false
-  },
-  "provider_runtime_snapshots": {
-    "latest_at": "2026-08-26T06:54:25.685562+00:00",
-    "max_age_seconds": 900,
-    "stale": true
-  },
-  "publishing_outbox": {
-    "latest_at": "2026-09-10T05:37:00.07577+00:00",
-    "max_age_seconds": 7200,
-    "stale": false
-  }
+  "product_selection_1000": null,
+  "social_distribution_metrics": null,
+  "social_publishing_outbox": null
 }
 ```
 
 ## Tonight's Operating Priorities
-- CRITICAL — live operating context has stale sources: provider_runtime_snapshots, orchestration_decisions. Do not infer health or change strategy from those sources until freshness is restored.
-- Product Intelligence has 2900 durable rankings; allow ranked products to compete through opportunity scoring, not automatic first place.
+- CRITICAL — live operating context has stale sources: social_publishing_outbox, product_selection_1000, social_distribution_metrics. Do not infer health or change strategy from those sources until freshness is restored.
+- CRITICAL — Product Intelligence durable rankings are zero; keep product-ranking status RED and use existing canonical inventory without pretending ranked-product evidence exists.
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
-- Measured feedback rows: 90. Continue shifting weight toward observed performance while preserving exploration.
-- Facebook pipeline 8 is below safety floor 10; refill opportunity inventory before increasing experimentation.
-- Instagram pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
-- Tiktok pipeline 7 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Only 0 measured feedback rows: timing/selection should still lean on commercial/freshness priors and avoid overfitting.
+- Facebook pipeline 0 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Instagram pipeline 0 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Tiktok pipeline 0 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Linkedin pipeline 0 is below safety floor 3; refill opportunity inventory before increasing experimentation.
 
 ## Current Opportunity Weights
 
 ```json
-{
-  "asset_weight": 12,
-  "brand_daily_cap": 4,
-  "commercial_weight": 22,
-  "fatigue_weight": 10,
-  "feedback_weight": 20,
-  "freshness_weight": 20,
-  "id": 1,
-  "new_product_share_cap": 0.45,
-  "source_weight": 8,
-  "updated_at": "2026-09-10T05:31:01.692717+00:00",
-  "updated_by": "night-brain-bounded-learning-v1",
-  "urgency_weight": 8
-}
+{}
 ```
 
 ## Live Pipeline Snapshot
 
 ```json
-{
-  "facebook": 8,
-  "instagram": 7,
-  "linkedin": 7,
-  "tiktok": 7
-}
+{}
 ```
 
 ## 30-Day Provider Feedback Evidence
 
 ```json
-[
-  {
-    "avg_score": 156.763,
-    "clicks": 0,
-    "platform": "tiktok",
-    "posts": 28,
-    "provider_key": "buffer",
-    "saves": 0,
-    "shares": 1
-  },
-  {
-    "avg_score": 10.934,
-    "clicks": 0,
-    "platform": "instagram",
-    "posts": 34,
-    "provider_key": "buffer",
-    "saves": 0,
-    "shares": 0
-  },
-  {
-    "avg_score": 0.109,
-    "clicks": 0,
-    "platform": "facebook",
-    "posts": 54,
-    "provider_key": "buffer",
-    "saves": 0,
-    "shares": 0
-  },
-  {
-    "avg_score": 0.0,
-    "clicks": 0,
-    "platform": "linkedin",
-    "posts": 27,
-    "provider_key": "brightbean",
-    "saves": 0,
-    "shares": 0
-  }
-]
+[]
 ```
 
 ## Live Counts
 
-- Canonical ready content: **1237**
+- Canonical ready content: **0**
 - Missing assets: **0**
-- Feedback ledger rows: **143**
-- Measured feedback rows: **90**
+- Feedback ledger rows: **0**
+- Measured feedback rows: **0**
 - Fresh active orchestration decisions (24h): **0**
 - Historical orchestration-decision rows: **0**
-- Durable product rankings: **2900**
+- Durable product rankings: **0**
 
 ---
 
