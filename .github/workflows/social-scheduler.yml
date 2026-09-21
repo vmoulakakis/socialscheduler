@@ -1,8 +1,6 @@
 name: Social Scheduler
 
 on:
-  schedule:
-    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -35,7 +33,7 @@ jobs:
       PUBLISHER_BACKEND: buffer
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
-      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
+      SCHEDULER_MODE: ${{ inputs.mode || 'dry-run' }}
       CONTENT_SOURCE: "socialmarket_outbox"
       SOCIALMARKET_OUTBOX_URL: "https://gqpbskssrvpfjtujwezc.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
