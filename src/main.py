@@ -21,8 +21,12 @@ def snapshot_queue_truth(snapshot: dict, channels: dict, per_channel_limit: int)
         for post in snapshot.get("posts", [])
         if post.get("status") in ACTIVE_QUEUE_STATUSES
     )
+    active_services = tuple(
+        service for service in SERVICES
+        if str((channels.get(service) or {}).get("id") or "").strip()
+    )
     channel_slo: dict[str, dict] = {}
-    for service in SERVICES:
+    for service in active_services:
         channel_id = str((channels.get(service) or {}).get("id") or "")
         active = int(active_by_channel.get(channel_id, 0))
         missing = max(0, per_channel_limit - active)
@@ -34,7 +38,7 @@ def snapshot_queue_truth(snapshot: dict, channels: dict, per_channel_limit: int)
             "met": missing == 0,
         }
     total_active = sum(row["active"] for row in channel_slo.values())
-    total_limit = per_channel_limit * len(SERVICES)
+    total_limit = per_channel_limit * len(active_services)
     total_missing = max(0, total_limit - total_active)
     queue_slo = {
         "active": total_active,
@@ -91,7 +95,7 @@ def main() -> int:
                     raise BufferAPIError("Unsafe active-queue pagination state; refusing capacity claim")
                 queue_slo, channel_slo = snapshot_queue_truth(snapshot, channels, per_channel_limit)
                 for service in SERVICES:
-                    capacity[service] = int(channel_slo[service]["missing"])
+                    capacity[service] = int((channel_slo.get(service) or {}).get("missing", 0))
 
                 refill_result = outbox.refill(int(settings.get("outbox_horizon_hours", 72)))
                 jobs = outbox.claim_provider_capacity(
@@ -117,7 +121,7 @@ def main() -> int:
                 "queue_slo": queue_slo,
                 "channel_queue_slo": channel_slo,
                 "full_truth_source": "buffer_runtime_snapshot_before_outbox_failure",
-                "preclaim_capacity": {service: int(channel_slo[service]["missing"]) for service in SERVICES},
+                "preclaim_capacity": {service: int((channel_slo.get(service) or {}).get("missing", 0)) for service in SERVICES},
                 "preclaim_active_queue": int(queue_slo["active"]),
                 "refill": refill_result,
             })
