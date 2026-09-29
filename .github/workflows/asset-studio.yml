@@ -24,7 +24,7 @@ jobs:
     env:
       SUPABASE_URL: https://gqpbskssrvpfjtujwezc.supabase.co
       SUPABASE_ANON_KEY: sb_publishable_Kcat2PHVjGn32ubiefotfA_iJjCU-B2
-      ASSET_LIMIT: '30'
+      ASSET_LIMIT: '60'
     steps:
       - uses: actions/checkout@v4
         with:
