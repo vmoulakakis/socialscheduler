@@ -54,6 +54,10 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 0
 
+    selection_clock = datetime.now(timezone.utc)
+    premium_order = [p for p in ("linkedin", "instagram", "facebook") if p in routes]
+    selected_route = premium_order[(selection_clock.day - 1) % len(premium_order)]
+
     if args.mode == "dry-run":
         try:
             preview = outbox.peek(50)
@@ -75,9 +79,6 @@ def main() -> int:
 
     # PostZen Free is a scarce monthly resource: consume at most one platform-post
     # per scheduled execution and rotate across actually connected routes.
-    selection_clock = datetime.now(timezone.utc)
-    premium_order = [p for p in ("linkedin", "instagram", "facebook") if p in routes]
-    selected_route = premium_order[(selection_clock.day - 1) % len(premium_order)]
     capacity = {
         name: (1 if name == selected_route else 0)
         for name in ("facebook", "instagram", "tiktok", "linkedin")
