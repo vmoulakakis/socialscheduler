@@ -100,6 +100,10 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 0
 
+    selection_clock = datetime.now(timezone.utc)
+    slot = 0 if selection_clock.hour < 15 else 1
+    selected_route = routes[(selection_clock.toordinal() + slot) % len(routes)]
+
     if args.mode == "dry-run":
         try:
             preview = outbox.peek(50)
@@ -114,6 +118,7 @@ def main() -> int:
             "workspace": me.get("workspace_name"),
             "permissions": me.get("permissions"),
             "routes": routes,
+            "selected_route": selected_route,
             "unavailable": unavailable,
             "accounts": account_summary,
             "jobs_preview": len(jobs),
@@ -122,7 +127,12 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 0
 
-    capacity = {name: (10 if name in routes else 0) for name in ("facebook", "instagram", "tiktok", "linkedin")}
+    # Two conversion-oriented executions per day, one platform each.
+    # This preserves content diversity and avoids cross-platform duplication/spam.
+    capacity = {
+        name: (1 if name == selected_route else 0)
+        for name in ("facebook", "instagram", "tiktok", "linkedin")
+    }
     try:
         refill_result = outbox.refill(int(os.getenv("OUTBOX_HORIZON_HOURS", "72")))
         jobs = outbox.claim_provider_capacity(
@@ -219,6 +229,7 @@ def main() -> int:
         "status": "completed" if failures == 0 else "partial_failure",
         "publisher": "brightbean",
         "routes": routes,
+        "selected_route": selected_route,
         "unavailable": unavailable,
         "accounts": account_summary,
         "refill": refill_result,
