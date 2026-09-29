@@ -73,7 +73,15 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 0
 
-    capacity = {name: (10 if name in routes else 0) for name in ("facebook", "instagram", "tiktok", "linkedin")}
+    # PostZen Free is a scarce monthly resource: consume at most one platform-post
+    # per scheduled execution and rotate across actually connected routes.
+    selection_clock = datetime.now(timezone.utc)
+    premium_order = [p for p in ("linkedin", "instagram", "facebook") if p in routes]
+    selected_route = premium_order[(selection_clock.day - 1) % len(premium_order)]
+    capacity = {
+        name: (1 if name == selected_route else 0)
+        for name in ("facebook", "instagram", "tiktok", "linkedin")
+    }
     try:
         refill_result = outbox.refill(int(os.getenv("OUTBOX_HORIZON_HOURS", "72")))
         jobs = outbox.claim_provider_capacity("postzen", capacity, executor="socialscheduler-postzen")
@@ -132,6 +140,7 @@ def main() -> int:
         "status": "completed" if failures == 0 else "partial_failure",
         "publisher": "postzen",
         "routes": routes,
+        "selected_route": selected_route,
         "connected_platforms": sorted(connected),
         "refill": refill_result,
         "claimed": len(jobs),
