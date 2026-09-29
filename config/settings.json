@@ -7,17 +7,18 @@
   "idea_limit": 100,
   "future_horizon_days": 7,
   "outbox_horizon_hours": 168,
-  "weekly_target": 300,
+  "weekly_target": 21,
   "channel_weekly": {
-    "facebook": 120,
-    "instagram": 100,
-    "tiktok": 80
+    "facebook": 3,
+    "instagram": 6,
+    "tiktok": 7,
+    "linkedin": 5
   },
   "source_mix": {
-    "socialmarket_products": 0.90,
-    "chatgpt_sites": 0.10
+    "socialmarket_products": 0.9,
+    "chatgpt_sites": 0.1
   },
-  "max_creates_per_run": 30,
+  "max_creates_per_run": 6,
   "buffer_api_soft_limit_30d": 2400,
   "analytics_frequency": "weekly",
   "late_item_policy": "defer",
@@ -32,8 +33,12 @@
   },
   "orchestrator": {
     "enabled": true,
-    "strategy": "maximize_safe_fill",
-    "providers": ["buffer", "postzen", "brightbean"],
+    "strategy": "conversion_first_free_tier",
+    "providers": [
+      "brightbean",
+      "buffer",
+      "postzen"
+    ],
     "failover": true,
     "deduplicate_across_providers": true,
     "fill_horizon_days": 7,
@@ -49,5 +54,38 @@
     "queue_limit_is_per_channel": true,
     "archive_then_delete_outbox_after_buffer_accept": true,
     "queue_correctness_over_fullness": true
+  },
+  "free_tier_routing": {
+    "buffer": {
+      "role": "visual_queue",
+      "platforms": [
+        "instagram",
+        "tiktok"
+      ],
+      "queue_limit_per_channel": 10
+    },
+    "socialchamp": {
+      "role": "authority_and_native_video",
+      "platforms": [
+        "linkedin",
+        "tiktok"
+      ],
+      "queue_limit_per_account": 15
+    },
+    "postzen": {
+      "role": "premium_conversion_slots",
+      "monthly_platform_posts": 20,
+      "max_per_run": 1
+    },
+    "brightbean": {
+      "role": "diversity_backbone",
+      "max_per_run": 1,
+      "runs_per_day": 2
+    }
+  },
+  "commercial_gate": {
+    "minimum_expected_commission_eur": 10,
+    "exact_tracking_offer_match": true,
+    "fail_closed": true
   }
 }
