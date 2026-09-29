@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: socialscheduler-asset-studio
@@ -38,6 +39,17 @@ jobs:
           python -m pip install --disable-pip-version-check 'Pillow==12.3.0' 'qrcode[pil]==8.2'
           python -m pip freeze | sort > /tmp/asset-studio-installed.txt
 
+      - name: Refresh conversion-safe asset feed
+        shell: bash
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "$SUPABASE_URL/rest/v1/rpc/socialscheduler_refresh_public_snapshots"
+
       - name: Generate missing posters + QR assets
         run: python scripts/generate_missing_assets_v2.py
 
@@ -52,3 +64,37 @@ jobs:
           else
             echo 'No new asset files to commit.'
           fi
+
+      - name: Mark generated QR assets ready in SocialMarket
+        if: always()
+        shell: bash
+        env:
+          PUBLISHING_OUTBOX_URL: https://gqpbskssrvpfjtujwezc.supabase.co/functions/v1/publishing-outbox
+          SOCIALMARKET_OIDC_AUDIENCE: socialmarket-v2-publishing
+        run: |
+          if [ ! -f assets/generated/manifest.json ]; then
+            echo "No asset manifest; nothing to mark ready."
+            exit 0
+          fi
+          BODY="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('assets/generated/manifest.json').read_text(encoding='utf-8'))
+          ids=[str(x.get('content_item_id')) for x in data.get('items',[]) if x.get('status')=='rendered' and x.get('content_item_id')]
+          print(json.dumps({'action':'asset_ready','ids':ids}, separators=(',',':')))
+          PY
+          )"
+          if [ "$BODY" = '{"action":"asset_ready","ids":[]}' ]; then
+            echo "No rendered assets; nothing to mark ready."
+            exit 0
+          fi
+          TOKEN_RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${SOCIALMARKET_OIDC_AUDIENCE}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$TOKEN_RESPONSE")"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$BODY" \
+            "$PUBLISHING_OUTBOX_URL"
