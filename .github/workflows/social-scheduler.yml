@@ -11,6 +11,8 @@ on:
         options:
           - dry-run
           - live
+  schedule:
+    - cron: "45 5 * * *"
   push:
     branches: [main]
     paths:
@@ -33,7 +35,7 @@ jobs:
       PUBLISHER_BACKEND: buffer
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       BUFFER_ORGANIZATION_ID: "68a86463018d512de98d6315"
-      SCHEDULER_MODE: ${{ inputs.mode || 'dry-run' }}
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || github.event_name == 'schedule' && 'live' || 'dry-run' }}
       CONTENT_SOURCE: "socialmarket_outbox"
       SOCIALMARKET_OUTBOX_URL: "https://gqpbskssrvpfjtujwezc.supabase.co/functions/v1/publishing-outbox"
       SOCIALMARKET_OIDC_AUDIENCE: "socialmarket-v2-publishing"
