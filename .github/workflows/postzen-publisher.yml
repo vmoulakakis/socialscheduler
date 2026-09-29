@@ -12,7 +12,7 @@ on:
           - dry-run
           - live
   schedule:
-    - cron: "27 * * * *"
+    - cron: "27 16 1-20 * *"
   push:
     branches: [main]
     paths:
