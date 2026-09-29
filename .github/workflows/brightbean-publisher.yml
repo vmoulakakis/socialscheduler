@@ -12,7 +12,7 @@ on:
           - dry-run
           - live
   schedule:
-    - cron: "37 * * * *"
+    - cron: "37 11,18 * * *"
   push:
     branches: [main]
     paths:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'live' }}
+      SCHEDULER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || github.event_name == 'schedule' && 'live' || 'dry-run' }}
       BRIGHTBEAN_API_URL: ${{ vars.BRIGHTBEAN_API_URL || 'https://studio.brightbean.xyz/api/v1' }}
       BRIGHTBEAN_API_KEY: ${{ secrets.BRIGHTBEAN_API_KEY }}
       BRIGHTBEAN_PLATFORMS: ${{ vars.BRIGHTBEAN_PLATFORMS || 'linkedin,facebook,instagram,tiktok' }}
