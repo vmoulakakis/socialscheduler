@@ -9,8 +9,9 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from io import BytesIO
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import qrcode
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gqpbskssrvpfjtujwezc.supabase.co").rstrip("/")
@@ -18,7 +19,7 @@ SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_Kcat2PHVjGn32
 LIMIT = max(1, min(int(os.getenv("ASSET_LIMIT", "30")), 80))
 OUT = Path(os.getenv("ASSET_DIR", "assets/generated"))
 OUT.mkdir(parents=True, exist_ok=True)
-RENDER_VERSION = "opportunity-poster-v3-qr440"
+RENDER_VERSION = "conversion-product-poster-v4-qr440"
 
 BOLD_CANDIDATES = ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"]
 REG_CANDIDATES = ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"]
@@ -32,7 +33,7 @@ def font(size: int, bold: bool = False):
 
 
 def fetch_rows():
-    select = "content_item_id,brand_name,brand_slug,title,core_copy,cta,tracking_url,hashtags,created_at,opportunity_score,expected_media_url"
+    select = "content_item_id,brand_name,brand_slug,title,core_copy,cta,tracking_url,hashtags,created_at,opportunity_score,expected_media_url,source_media_url"
     url = f"{SUPABASE_URL}/rest/v1/socialscheduler_public_asset_feed?select={urllib.parse.quote(select, safe=',')}&order=opportunity_score.desc,created_at.desc&limit={LIMIT}"
     req = urllib.request.Request(url, headers={"apikey": SUPABASE_ANON_KEY, "authorization": f"Bearer {SUPABASE_ANON_KEY}", "accept": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:
@@ -95,6 +96,22 @@ def hashtags(value):
     return out[:5]
 
 
+
+def fetch_product_image(url: str | None):
+    if not url:
+        return None
+    try:
+        req = urllib.request.Request(
+            str(url),
+            headers={"User-Agent": "Mozilla/5.0 SocialSchedulerAssetStudio/1.0"}
+        )
+        with urllib.request.urlopen(req, timeout=20) as r:
+            raw = r.read(8_000_000)
+        image = Image.open(BytesIO(raw)).convert("RGB")
+        return ImageOps.fit(image, (340, 340), method=Image.Resampling.LANCZOS)
+    except Exception:
+        return None
+
 def make_poster(row):
     cid = str(row["content_item_id"])
     dest = OUT / f"{cid}.png"
@@ -118,12 +135,23 @@ def make_poster(row):
     d.rounded_rectangle((70, 62, badge_w, 116), radius=24, fill=badge_fill, outline=accent, width=2)
     d.text((92, 73), brand.upper(), font=brand_f, fill=(245, 249, 252))
 
+    product = fetch_product_image(row.get("source_media_url"))
+    if product is not None:
+        product_x, product_y = 670, 170
+        frame = Image.new("RGB", (360, 360), (248, 250, 252))
+        frame.paste(product, (10, 10))
+        im.paste(frame, (product_x - 10, product_y - 10))
+        d.rounded_rectangle((product_x - 14, product_y - 14, product_x + 354, product_y + 354), radius=28, outline=accent, width=4)
+        text_width = 560
+    else:
+        text_width = 820
+
     y = 175
-    for line in wrap(d, title, title_f, 820, 3):
+    for line in wrap(d, title, title_f, text_width, 3):
         d.text((70, y), line, font=title_f, fill=(255, 255, 255)); y += 78
     y += 16
     hook = body.split("\n")[0][:180]
-    for line in wrap(d, hook, body_f, 660, 3):
+    for line in wrap(d, hook, body_f, 560 if product is not None else 660, 3):
         d.text((72, y), line, font=body_f, fill=(217, 231, 241)); y += 45
 
     y = min(620, max(y + 30, 540))
@@ -144,7 +172,7 @@ def make_poster(row):
         d.text((850, 62), f"OPP {float(row['opportunity_score']):.1f}", font=small_f, fill=(232, 244, 250))
 
     im.save(dest, "PNG", optimize=True)
-    return {"content_item_id": cid, "path": str(dest), "status": "rendered", "render_version": RENDER_VERSION, "url": row.get("expected_media_url"), "tracking_url": tracking, "hashtags": tags, "qr_modules": qr.modules_count, "qr_pixel_size": [qr_w, qr_h]}
+    return {"content_item_id": cid, "path": str(dest), "status": "rendered", "render_version": RENDER_VERSION, "url": row.get("expected_media_url"), "tracking_url": tracking, "source_media_url": row.get("source_media_url"), "product_image_used": product is not None, "hashtags": tags, "qr_modules": qr.modules_count, "qr_pixel_size": [qr_w, qr_h]}
 
 
 def main():
