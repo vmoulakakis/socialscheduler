@@ -1,0 +1,5 @@
+---
+description: Universal creation routing and verifiable delivery
+alwaysApply: true
+---
+Read AGENTS.md and `.agents/skills/universal-creation-orchestrator/SKILL.md` when creating or improving artifacts. Project rules outrank the router. No automatic installs or deploys.
