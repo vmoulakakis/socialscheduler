@@ -1,6 +1,6 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-10-30T06:20:40.944092+00:00`
+Generated automatically: `2026-10-31T06:11:57.079755+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.
 
