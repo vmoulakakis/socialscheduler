@@ -1,6 +1,6 @@
 # SocialScheduler MASTER SKILLS — Live Operating Manual
 
-Generated automatically: `2026-11-06T07:18:03.229521+00:00`
+Generated automatically: `2026-11-07T06:29:35.348304+00:00`
 
 > This file is rebuilt nightly. Stable safety/role doctrine comes from `ROLE_CARDS.md`; operating context is admitted only with explicit source freshness. Stale telemetry is displayed as stale and must not drive autonomous strategy changes.
 
@@ -14,7 +14,7 @@ Generated automatically: `2026-11-06T07:18:03.229521+00:00`
 {
   "product_selection_1000": null,
   "social_distribution_metrics": null,
-  "social_publishing_outbox": "2026-09-29T09:08:32.230774+00:00"
+  "social_publishing_outbox": null
 }
 ```
 
@@ -24,6 +24,9 @@ Generated automatically: `2026-11-06T07:18:03.229521+00:00`
 - Creative backlog is clear; reuse strong source assets before generating new fallback posters.
 - Only 0 measured feedback rows: timing/selection should still lean on commercial/freshness priors and avoid overfitting.
 - Facebook pipeline 0 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Instagram pipeline 0 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Tiktok pipeline 0 is below safety floor 10; refill opportunity inventory before increasing experimentation.
+- Linkedin pipeline 0 is below safety floor 3; refill opportunity inventory before increasing experimentation.
 
 ## Current Opportunity Weights
 
@@ -34,11 +37,7 @@ Generated automatically: `2026-11-06T07:18:03.229521+00:00`
 ## Live Pipeline Snapshot
 
 ```json
-{
-  "instagram": 10,
-  "linkedin": 12,
-  "tiktok": 15
-}
+{}
 ```
 
 ## 30-Day Provider Feedback Evidence
@@ -49,7 +48,7 @@ Generated automatically: `2026-11-06T07:18:03.229521+00:00`
 
 ## Live Counts
 
-- Canonical ready content: **37**
+- Canonical ready content: **0**
 - Missing assets: **0**
 - Feedback ledger rows: **0**
 - Measured feedback rows: **0**
